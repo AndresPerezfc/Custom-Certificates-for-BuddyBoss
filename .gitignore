@@ -1,0 +1,45 @@
+# Composer
+/vendor/
+composer.lock
+
+# WordPress
+.DS_Store
+.htaccess
+wp-config.php
+wp-content/uploads/
+wp-content/blogs.dir/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/cache/
+wp-content/cache/supercache/
+
+# Logs
+*.log
+error_log
+debug.log
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.phpstorm.meta.php
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Node modules (si se usan en el futuro)
+node_modules/
+package-lock.json
+
+# Build files
+dist/
+build/
