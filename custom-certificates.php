@@ -72,6 +72,12 @@ class Custom_Certificates {
      * Include required files
      */
     private function includes() {
+        // Load Composer autoloader if available
+        $autoloader = CUSTOM_CERT_PLUGIN_DIR . 'vendor/autoload.php';
+        if (file_exists($autoloader)) {
+            require_once $autoloader;
+        }
+
         // Dependency installer (always load this first)
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-dependency-installer.php';
 
