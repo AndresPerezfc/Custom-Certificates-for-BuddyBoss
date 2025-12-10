@@ -22,26 +22,56 @@ Sistema de certificados personalizados para WordPress que se integra perfectamen
 
 ## Instalación
 
-### 1. Subir el Plugin
+El plugin está disponible en **dos versiones**:
 
-Sube la carpeta `custom-certificates` al directorio `/wp-content/plugins/` de tu instalación de WordPress.
+### 📦 Versión Full (Recomendada)
 
-### 2. Instalar Dependencias
+**Para usuarios que quieren instalación inmediata sin configuración técnica**
 
-El plugin utiliza mPDF para generar los PDFs. Necesitas instalar las dependencias usando Composer:
+1. **Descarga** el archivo `custom-certificates-full-vX.X.X.zip`
+2. **Sube el plugin:**
+   - Ve a **Plugins > Añadir nuevo** en WordPress
+   - Haz clic en **Subir plugin**
+   - Selecciona el archivo ZIP
+   - Haz clic en **Instalar ahora**
+3. **Activa** el plugin
+4. **¡Listo!** - Empieza a crear certificados
+
+✅ Sin Composer, sin SSH, sin configuración técnica
+
+### 💨 Versión Lite
+
+**Para usuarios con servidor conectado a internet**
+
+1. **Descarga** el archivo `custom-certificates-lite-vX.X.X.zip`
+2. **Sube y activa** igual que la versión Full
+3. **Instalación automática de dependencias:**
+   - Aparecerá un aviso: "El plugin necesita instalar dependencias"
+   - Haz clic en **"Instalar Dependencias Automáticamente"**
+   - Espera 10-20 segundos
+4. **¡Listo!** - Empieza a crear certificados
+
+⚡ Archivo más ligero, instalación automática con un clic
+
+---
+
+### Instalación Manual (Solo para desarrolladores)
+
+Si prefieres instalar desde el código fuente:
 
 ```bash
-cd wp-content/plugins/custom-certificates
-composer install
+# 1. Clonar o descargar el repositorio
+git clone https://github.com/tu-usuario/custom-certificates.git
+cd custom-certificates
+
+# 2. Instalar dependencias con Composer
+composer install --no-dev --optimize-autoloader
+
+# 3. Subir a WordPress
+# Copia la carpeta completa a /wp-content/plugins/
+
+# 4. Activar desde WordPress Admin
 ```
-
-Si no tienes Composer instalado, puedes descargarlo desde [getcomposer.org](https://getcomposer.org/).
-
-### 3. Activar el Plugin
-
-1. Ve a **Plugins** en el administrador de WordPress
-2. Busca "Custom Certificates for BuddyBoss"
-3. Haz clic en **Activar**
 
 ## Uso
 

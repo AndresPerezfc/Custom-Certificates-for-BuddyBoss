@@ -1,5 +1,6 @@
 # Composer
-/vendor/
+# NO ignorar vendor/ si vas a distribuir el plugin
+# /vendor/
 composer.lock
 
 # WordPress
@@ -36,10 +37,10 @@ Thumbs.db
 *.temp
 *~
 
-# Node modules (si se usan en el futuro)
+# Node modules
 node_modules/
 package-lock.json
 
-# Build files
+# Build files (si los usas)
 dist/
 build/

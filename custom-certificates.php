@@ -59,6 +59,10 @@ class Custom_Certificates {
         add_action('plugins_loaded', array($this, 'load_textdomain'));
         add_action('init', array($this, 'init'));
 
+        // Check dependencies
+        add_action('admin_notices', array($this, 'check_dependencies'));
+        add_action('admin_menu', array($this, 'add_dependency_installer_page'), 999);
+
         // Activation and deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
@@ -68,6 +72,9 @@ class Custom_Certificates {
      * Include required files
      */
     private function includes() {
+        // Dependency installer (always load this first)
+        require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-dependency-installer.php';
+
         // Core classes
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-certificate-post-type.php';
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-certificate-assignment.php';
@@ -132,6 +139,29 @@ class Custom_Certificates {
         flush_rewrite_rules();
 
         do_action('custom_cert_deactivated');
+    }
+
+    /**
+     * Check if dependencies are installed
+     */
+    public function check_dependencies() {
+        if (!Custom_Cert_Dependency_Installer::dependencies_installed()) {
+            Custom_Cert_Dependency_Installer::admin_notice_missing_dependencies();
+        }
+    }
+
+    /**
+     * Add dependency installer page
+     */
+    public function add_dependency_installer_page() {
+        add_submenu_page(
+            null, // Hidden from menu
+            __('Instalar Dependencias', 'custom-certificates'),
+            __('Instalar Dependencias', 'custom-certificates'),
+            'manage_options',
+            'cert-install-dependencies',
+            array('Custom_Cert_Dependency_Installer', 'dependency_installation_page')
+        );
     }
 
     /**
