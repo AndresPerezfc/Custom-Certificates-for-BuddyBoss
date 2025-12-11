@@ -125,8 +125,9 @@ class Custom_Certificates {
      * Plugin activation
      */
     public function activate() {
-        // Create custom post types
+        // Create custom post types and taxonomies
         Custom_Cert_Post_Type::register_post_types();
+        Custom_Cert_Post_Type::register_taxonomies();
 
         // Flush rewrite rules
         flush_rewrite_rules();

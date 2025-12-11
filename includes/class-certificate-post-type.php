@@ -21,8 +21,9 @@ class Custom_Cert_Post_Type {
     }
 
     private function __construct() {
-        add_action('init', array($this, 'register_post_types'));
-        add_action('init', array($this, 'register_taxonomies'));
+        // Register immediately, not on 'init' hook
+        self::register_post_types();
+        self::register_taxonomies();
         add_filter('post_updated_messages', array($this, 'updated_messages'));
     }
 
@@ -109,7 +110,7 @@ class Custom_Cert_Post_Type {
     /**
      * Register taxonomies for certificate categorization
      */
-    public function register_taxonomies() {
+    public static function register_taxonomies() {
         register_taxonomy('cert_category', array('bb_cert_template'), array(
             'labels' => array(
                 'name' => __('Categorías de Certificados', 'custom-certificates'),
