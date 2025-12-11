@@ -38,23 +38,11 @@ class Custom_Cert_BuddyBoss {
     public function setup_nav() {
         // Main tab
         bp_core_new_nav_item(array(
-            'name' => __('Certificados', 'custom-certificates'),
+            'name' => __('Mis Certificados', 'custom-certificates'),
             'slug' => 'custom-certificates',
             'screen_function' => array($this, 'certificates_screen'),
             'position' => 80,
-            'default_subnav_slug' => 'my-certificates',
             'item_css_id' => 'custom-certificates'
-        ));
-
-        // Sub nav - My Certificates
-        bp_core_new_subnav_item(array(
-            'name' => __('Mis Certificados', 'custom-certificates'),
-            'slug' => 'my-certificates',
-            'parent_url' => bp_displayed_user_domain() . 'custom-certificates/',
-            'parent_slug' => 'custom-certificates',
-            'screen_function' => array($this, 'my_certificates_screen'),
-            'position' => 10,
-            'item_css_id' => 'my-certificates'
         ));
     }
 
@@ -68,25 +56,9 @@ class Custom_Cert_BuddyBoss {
     }
 
     /**
-     * My certificates screen
-     */
-    public function my_certificates_screen() {
-        add_action('bp_template_title', array($this, 'my_certificates_title'));
-        add_action('bp_template_content', array($this, 'my_certificates_content'));
-        bp_core_load_template(apply_filters('bp_core_template_plugin', 'members/single/plugins'));
-    }
-
-    /**
      * Certificates title
      */
     public function certificates_title() {
-        echo __('Certificados', 'custom-certificates');
-    }
-
-    /**
-     * My certificates title
-     */
-    public function my_certificates_title() {
         echo __('Mis Certificados', 'custom-certificates');
     }
 
@@ -94,13 +66,6 @@ class Custom_Cert_BuddyBoss {
      * Certificates content
      */
     public function certificates_content() {
-        $this->my_certificates_content();
-    }
-
-    /**
-     * My certificates content
-     */
-    public function my_certificates_content() {
         $user_id = bp_displayed_user_id();
 
         // Get user certificates
