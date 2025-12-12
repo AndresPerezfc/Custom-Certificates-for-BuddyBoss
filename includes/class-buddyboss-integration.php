@@ -134,8 +134,8 @@ class Custom_Cert_BuddyBoss {
                                 <?php if ($is_own_profile || current_user_can('manage_options')): ?>
                                 <div class="certificate-actions">
                                     <a href="<?php echo esc_url($download_url); ?>" class="button certificate-download" target="_blank">
-                                        <span class="dashicons dashicons-download"></span>
-                                        <?php _e('Descargar PDF', 'custom-certificates'); ?>
+                                        <span class="dashicons dashicons-media-document"></span>
+                                        <?php _e('Ver Certificado', 'custom-certificates'); ?>
                                     </a>
                                 </div>
                                 <?php endif; ?>

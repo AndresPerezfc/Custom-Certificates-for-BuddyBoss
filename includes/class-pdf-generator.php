@@ -100,14 +100,14 @@ class Custom_Cert_PDF_Generator {
             // Write HTML to PDF
             $mpdf->WriteHTML($html);
 
-            // Output PDF for download
+            // Output PDF inline (display in browser)
             $filename = sanitize_file_name(sprintf(
                 'certificado-%s-%s.pdf',
                 $data['user_name'],
                 $data['verification_code']
             ));
 
-            $mpdf->Output($filename, 'D'); // D = Download
+            $mpdf->Output($filename, 'I'); // I = Inline (display in browser)
 
         } catch (Exception $e) {
             wp_die(__('Error al generar PDF: ', 'custom-certificates') . $e->getMessage());
