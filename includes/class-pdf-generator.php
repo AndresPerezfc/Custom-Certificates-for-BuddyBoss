@@ -76,10 +76,19 @@ class Custom_Cert_PDF_Generator {
         $this->load_mpdf();
 
         try {
-            // Create PDF - Letter size landscape (11" x 8.5")
+            // Determine format based on template configuration
+            $orientation = 'landscape'; // Default
+            if (isset($data['template_config']['orientation'])) {
+                $orientation = $data['template_config']['orientation'];
+            }
+
+            // Set format: Letter-L for landscape, Letter-P for portrait
+            $format = ($orientation === 'portrait') ? 'Letter-P' : 'Letter-L';
+
+            // Create PDF with configured orientation
             $mpdf = new \Mpdf\Mpdf(array(
                 'mode' => 'utf-8',
-                'format' => 'Letter-L', // Letter Landscape
+                'format' => $format,
                 'margin_left' => 0,
                 'margin_right' => 0,
                 'margin_top' => 0,
