@@ -21,7 +21,7 @@ class Custom_Cert_PDF_Generator {
     }
 
     private function __construct() {
-        add_action('init', array($this, 'handle_pdf_download'));
+        add_action('template_redirect', array($this, 'handle_pdf_download'));
     }
 
     /**
@@ -76,17 +76,23 @@ class Custom_Cert_PDF_Generator {
         $this->load_mpdf();
 
         try {
-            // Create PDF
+            // Create PDF - Letter size landscape (11" x 8.5")
             $mpdf = new \Mpdf\Mpdf(array(
                 'mode' => 'utf-8',
-                'format' => 'A4-L', // A4 Landscape
+                'format' => 'Letter-L', // Letter Landscape
                 'margin_left' => 0,
                 'margin_right' => 0,
                 'margin_top' => 0,
                 'margin_bottom' => 0,
                 'margin_header' => 0,
-                'margin_footer' => 0
+                'margin_footer' => 0,
+                'default_font_size' => 12,
+                'default_font' => 'dejavusans'
             ));
+
+            // Disable automatic page breaks
+            $mpdf->shrink_tables_to_fit = 0;
+            $mpdf->keep_table_proportions = false;
 
             // Generate HTML
             $html = $this->generate_html($data);
@@ -188,9 +194,8 @@ class Custom_Cert_PDF_Generator {
      * @param array $data Certificate data
      */
     private function default_template($data) {
-        $bg_color = isset($data['template_config']['bg_color']) ? $data['template_config']['bg_color'] : '#ffffff';
-        $text_color = isset($data['template_config']['text_color']) ? $data['template_config']['text_color'] : '#000000';
-        $font_size = isset($data['template_config']['font_size']) ? $data['template_config']['font_size'] : '24';
+        // Get background image
+        $background_image = $data['background_image'];
 
         ?>
         <!DOCTYPE html>
@@ -202,112 +207,43 @@ class Custom_Cert_PDF_Generator {
                     margin: 0;
                 }
                 body {
-                    font-family: 'DejaVu Sans', Arial, sans-serif;
                     margin: 0;
                     padding: 0;
-                    background-color: <?php echo esc_attr($bg_color); ?>;
+                    width: 100%;
+                    height: 100%;
                 }
-                .certificate-container {
+                .certificate-page {
                     position: relative;
-                    width: 297mm;
-                    height: 210mm;
-                    padding: 20mm;
-                    box-sizing: border-box;
-                    <?php if ($data['background_image']): ?>
-                    background-image: url('<?php echo esc_url($data['background_image']); ?>');
-                    background-size: cover;
-                    background-position: center;
-                    <?php endif; ?>
+                    width: 100%;
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
                 }
-                .certificate-header {
-                    text-align: center;
-                    margin-bottom: 30mm;
-                }
-                .certificate-title {
-                    font-size: 48px;
-                    font-weight: bold;
-                    color: <?php echo esc_attr($text_color); ?>;
-                    margin-bottom: 10mm;
-                    text-transform: uppercase;
-                }
-                .certificate-subtitle {
-                    font-size: 24px;
-                    color: <?php echo esc_attr($text_color); ?>;
-                }
-                .certificate-body {
-                    text-align: center;
-                    margin: 30mm 0;
-                }
-                .certificate-text {
-                    font-size: 18px;
-                    color: <?php echo esc_attr($text_color); ?>;
-                    line-height: 1.8;
-                    margin-bottom: 10mm;
-                }
-                .user-name {
-                    font-size: <?php echo esc_attr($font_size); ?>px;
-                    font-weight: bold;
-                    color: <?php echo esc_attr($text_color); ?>;
-                    margin: 15mm 0;
-                    padding: 5mm 0;
-                    border-top: 2px solid <?php echo esc_attr($text_color); ?>;
-                    border-bottom: 2px solid <?php echo esc_attr($text_color); ?>;
-                }
-                .certificate-footer {
+                <?php if ($background_image): ?>
+                .certificate-background {
                     position: absolute;
-                    bottom: 20mm;
-                    left: 20mm;
-                    right: 20mm;
-                    display: flex;
-                    justify-content: space-between;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
                 }
-                .issue-date, .verification-code {
-                    font-size: 12px;
-                    color: <?php echo esc_attr($text_color); ?>;
+                .certificate-background img {
+                    width: 100%;
+                    height: 100%;
+                    display: block;
                 }
-                .verification-code {
-                    text-align: right;
-                }
+                <?php endif; ?>
             </style>
         </head>
         <body>
-            <div class="certificate-container">
-                <div class="certificate-header">
-                    <div class="certificate-title">Certificado</div>
-                    <div class="certificate-subtitle"><?php echo esc_html($data['template_name']); ?></div>
-                </div>
-
-                <div class="certificate-body">
-                    <div class="certificate-text">
-                        Se otorga el presente certificado a:
+            <div class="certificate-page">
+                <?php if ($background_image): ?>
+                    <div class="certificate-background">
+                        <img src="<?php echo esc_url($background_image); ?>" alt="Certificate Background" />
                     </div>
-
-                    <div class="user-name">
-                        <?php echo esc_html($data['user_name']); ?>
-                    </div>
-
-                    <div class="certificate-text">
-                        Por haber completado satisfactoriamente los requisitos establecidos
-                        para la obtención de este reconocimiento.
-                    </div>
-
-                    <?php if (!empty($data['custom_data']['description'])): ?>
-                    <div class="certificate-text">
-                        <?php echo esc_html($data['custom_data']['description']); ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="certificate-footer">
-                    <div class="issue-date">
-                        <strong>Fecha de emisión:</strong><br>
-                        <?php echo esc_html($data['issue_date_formatted']); ?>
-                    </div>
-                    <div class="verification-code">
-                        <strong>Código de verificación:</strong><br>
-                        <?php echo esc_html($data['verification_code']); ?>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </body>
         </html>
