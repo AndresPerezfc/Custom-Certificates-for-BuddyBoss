@@ -144,6 +144,15 @@ class Custom_Cert_PDF_Generator {
             $template_config = array();
         }
 
+        // Get template content and replace variables
+        $template_content = $template->post_content;
+        $template_content = $this->replace_variables($template_content, array(
+            'NOMBRE_USUARIO' => $user->display_name,
+            'EMAIL_USUARIO' => $user->user_email,
+            'FECHA_EMISION' => date_i18n(get_option('date_format'), strtotime($issue_date)),
+            'CODIGO_VERIFICACION' => $verification_code
+        ));
+
         $data = array(
             'certificate_id' => $certificate_id,
             'user_id' => $user_id,
@@ -156,7 +165,8 @@ class Custom_Cert_PDF_Generator {
             'issue_date_formatted' => date_i18n(get_option('date_format'), strtotime($issue_date)),
             'custom_data' => $custom_data,
             'template_config' => $template_config,
-            'background_image' => get_the_post_thumbnail_url($template_id, 'full')
+            'background_image' => get_the_post_thumbnail_url($template_id, 'full'),
+            'template_content' => $template_content // Processed content with variables replaced
         );
 
         return apply_filters('custom_cert_pdf_data', $data, $certificate_id);
@@ -312,5 +322,21 @@ class Custom_Cert_PDF_Generator {
             'cert_id' => $certificate_id,
             '_wpnonce' => wp_create_nonce('download_cert_' . $certificate_id)
         ), home_url());
+    }
+
+    /**
+     * Replace variables in content
+     *
+     * @param string $content Content with variables
+     * @param array $replacements Array of variable => value pairs
+     * @return string Content with variables replaced
+     */
+    private function replace_variables($content, $replacements) {
+        foreach ($replacements as $variable => $value) {
+            // Replace {VARIABLE_NAME} format
+            $content = str_replace('{' . $variable . '}', $value, $content);
+        }
+
+        return $content;
     }
 }
