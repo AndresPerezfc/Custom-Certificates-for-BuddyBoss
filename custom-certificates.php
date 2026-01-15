@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Custom Certificates for BuddyBoss
- * Plugin URI: https://tudominio.com
+ * Plugin URI: https://andresperezfc.com
  * Description: Sistema de certificados personalizados independiente de LearnDash, integrado con BuddyBoss
  * Version: 1.0.0
- * Author: Tu Nombre
- * Author URI: https://tudominio.com
+ * Author: Andrés Pérez Campo
+ * Author URI: https://andresperezfc.com
  * Text Domain: custom-certificates
  * Domain Path: /languages
  * Requires PHP: 7.4
@@ -27,7 +27,8 @@ define('CUSTOM_CERT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 /**
  * Main plugin class
  */
-class Custom_Certificates {
+class Custom_Certificates
+{
 
     /**
      * Single instance of the class
@@ -37,7 +38,8 @@ class Custom_Certificates {
     /**
      * Get instance
      */
-    public static function get_instance() {
+    public static function get_instance()
+    {
         if (null === self::$instance) {
             self::$instance = new self();
         }
@@ -47,7 +49,8 @@ class Custom_Certificates {
     /**
      * Constructor
      */
-    private function __construct() {
+    private function __construct()
+    {
         $this->init_hooks();
         $this->includes();
     }
@@ -55,7 +58,8 @@ class Custom_Certificates {
     /**
      * Initialize hooks
      */
-    private function init_hooks() {
+    private function init_hooks()
+    {
         add_action('plugins_loaded', array($this, 'load_textdomain'));
         add_action('init', array($this, 'init'));
 
@@ -71,7 +75,8 @@ class Custom_Certificates {
     /**
      * Include required files
      */
-    private function includes() {
+    private function includes()
+    {
         // Load Composer autoloader if available
         $autoloader = CUSTOM_CERT_PLUGIN_DIR . 'vendor/autoload.php';
         if (file_exists($autoloader)) {
@@ -95,7 +100,8 @@ class Custom_Certificates {
     /**
      * Initialize plugin
      */
-    public function init() {
+    public function init()
+    {
         // Initialize components
         Custom_Cert_Post_Type::get_instance();
         Custom_Cert_Assignment::get_instance();
@@ -113,7 +119,8 @@ class Custom_Certificates {
     /**
      * Load plugin textdomain
      */
-    public function load_textdomain() {
+    public function load_textdomain()
+    {
         load_plugin_textdomain(
             'custom-certificates',
             false,
@@ -124,7 +131,8 @@ class Custom_Certificates {
     /**
      * Plugin activation
      */
-    public function activate() {
+    public function activate()
+    {
         // Create custom post types and taxonomies
         Custom_Cert_Post_Type::register_post_types();
         Custom_Cert_Post_Type::register_taxonomies();
@@ -141,7 +149,8 @@ class Custom_Certificates {
     /**
      * Plugin deactivation
      */
-    public function deactivate() {
+    public function deactivate()
+    {
         // Flush rewrite rules
         flush_rewrite_rules();
 
@@ -151,7 +160,8 @@ class Custom_Certificates {
     /**
      * Check if dependencies are installed
      */
-    public function check_dependencies() {
+    public function check_dependencies()
+    {
         if (!Custom_Cert_Dependency_Installer::dependencies_installed()) {
             Custom_Cert_Dependency_Installer::admin_notice_missing_dependencies();
         }
@@ -160,7 +170,8 @@ class Custom_Certificates {
     /**
      * Add dependency installer page
      */
-    public function add_dependency_installer_page() {
+    public function add_dependency_installer_page()
+    {
         add_submenu_page(
             null, // Hidden from menu
             __('Instalar Dependencias', 'custom-certificates'),
@@ -174,7 +185,8 @@ class Custom_Certificates {
     /**
      * Create default certificate template
      */
-    private function create_default_template() {
+    private function create_default_template()
+    {
         // Check if default template already exists
         $existing = get_posts(array(
             'post_type' => 'bb_cert_template',
@@ -206,7 +218,8 @@ class Custom_Certificates {
 /**
  * Initialize plugin
  */
-function custom_certificates() {
+function custom_certificates()
+{
     return Custom_Certificates::get_instance();
 }
 
