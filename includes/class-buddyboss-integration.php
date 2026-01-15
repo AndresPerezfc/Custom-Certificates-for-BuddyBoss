@@ -43,6 +43,13 @@ class Custom_Cert_BuddyBoss
         // Only check count if we are on a user profile
         if (bp_is_user()) {
             $user_id = bp_displayed_user_id();
+
+            // Privacy check: Only visible to owner or admin
+            $current_user_id = get_current_user_id();
+            if ($user_id !== $current_user_id && !current_user_can('manage_options')) {
+                return;
+            }
+
             $assignment = Custom_Cert_Assignment::get_instance();
 
             // If user has no certificates, do not create the tab
