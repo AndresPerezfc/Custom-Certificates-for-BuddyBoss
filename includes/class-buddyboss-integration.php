@@ -9,18 +9,21 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Custom_Cert_BuddyBoss {
+class Custom_Cert_BuddyBoss
+{
 
     private static $instance = null;
 
-    public static function get_instance() {
+    public static function get_instance()
+    {
         if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
     }
 
-    private function __construct() {
+    private function __construct()
+    {
         // Check if BuddyBoss/BuddyPress is active
         if (!function_exists('bp_core_new_nav_item')) {
             add_action('admin_notices', array($this, 'buddyboss_missing_notice'));
@@ -35,7 +38,8 @@ class Custom_Cert_BuddyBoss {
     /**
      * Setup navigation tab
      */
-    public function setup_nav() {
+    public function setup_nav()
+    {
         // Main tab
         bp_core_new_nav_item(array(
             'name' => __('Mis Certificados', 'custom-certificates'),
@@ -49,7 +53,8 @@ class Custom_Cert_BuddyBoss {
     /**
      * Main certificates screen
      */
-    public function certificates_screen() {
+    public function certificates_screen()
+    {
         add_action('bp_template_title', array($this, 'certificates_title'));
         add_action('bp_template_content', array($this, 'certificates_content'));
         bp_core_load_template(apply_filters('bp_core_template_plugin', 'members/single/plugins'));
@@ -58,14 +63,16 @@ class Custom_Cert_BuddyBoss {
     /**
      * Certificates title
      */
-    public function certificates_title() {
+    public function certificates_title()
+    {
         echo __('Mis Certificados', 'custom-certificates');
     }
 
     /**
      * Certificates content
      */
-    public function certificates_content() {
+    public function certificates_content()
+    {
         $user_id = bp_displayed_user_id();
 
         // Get user certificates
@@ -88,7 +95,8 @@ class Custom_Cert_BuddyBoss {
      * @param array $certificates Array of certificate posts
      * @param int $user_id User ID
      */
-    private function default_certificates_template($certificates, $user_id) {
+    private function default_certificates_template($certificates, $user_id)
+    {
         $is_own_profile = (get_current_user_id() === $user_id);
         $displayed_user = get_userdata($user_id);
 
@@ -132,12 +140,12 @@ class Custom_Cert_BuddyBoss {
                                 </div>
 
                                 <?php if ($is_own_profile || current_user_can('manage_options')): ?>
-                                <div class="certificate-actions">
-                                    <a href="<?php echo esc_url($download_url); ?>" class="button certificate-download" target="_blank">
-                                        <span class="dashicons dashicons-media-document"></span>
-                                        <?php _e('Ver Certificado', 'custom-certificates'); ?>
-                                    </a>
-                                </div>
+                                    <div class="certificate-actions">
+                                        <a href="<?php echo esc_url($download_url); ?>" class="button certificate-download" target="_blank">
+                                            <span class="dashicons dashicons-download"></span>
+                                            <?php _e('Descargar Certificado', 'custom-certificates'); ?>
+                                        </a>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -181,19 +189,20 @@ class Custom_Cert_BuddyBoss {
             .certificate-item {
                 background: #fff;
                 border: 1px solid #e0e0e0;
-                border-radius: 8px;
+                border-radius: 12px;
                 overflow: hidden;
-                transition: transform 0.2s, box-shadow 0.2s;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
             }
 
             .certificate-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transform: translateY(-4px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
             }
 
             .certificate-thumbnail {
                 position: relative;
-                padding-top: 70.7%; /* A4 Landscape ratio */
+                padding-top: 70.7%;
+                /* A4 Landscape ratio */
                 background: #f5f5f5;
                 overflow: hidden;
             }
@@ -205,6 +214,11 @@ class Custom_Cert_BuddyBoss {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+                transition: transform 0.5s ease;
+            }
+
+            .certificate-item:hover .certificate-thumbnail img {
+                transform: scale(1.05);
             }
 
             .certificate-placeholder {
@@ -227,72 +241,98 @@ class Custom_Cert_BuddyBoss {
             }
 
             .certificate-info {
-                padding: 15px;
+                padding: 20px;
             }
 
             .certificate-name {
                 margin: 0 0 10px 0;
                 font-size: 18px;
                 font-weight: 600;
-                color: #333;
+                color: #2c3e50;
+                line-height: 1.3;
             }
 
             .certificate-meta {
                 display: flex;
                 flex-direction: column;
-                gap: 5px;
-                margin-bottom: 15px;
+                gap: 8px;
+                margin-bottom: 20px;
                 font-size: 13px;
-                color: #666;
+                color: #7f8c8d;
             }
 
             .certificate-meta span {
                 display: flex;
                 align-items: center;
-                gap: 5px;
+                gap: 8px;
             }
 
             .certificate-meta .dashicons {
                 font-size: 16px;
                 width: 16px;
                 height: 16px;
+                color: #95a5a6;
             }
 
             .certificate-actions {
                 display: flex;
-                gap: 10px;
             }
 
-            .certificate-download {
-                display: inline-flex;
+            a.button.certificate-download {
+                display: inline-flex !important;
                 align-items: center;
-                gap: 5px;
-                padding: 8px 16px;
-                background: #667eea;
-                color: #fff !important;
-                border: none;
-                border-radius: 4px;
+                justify-content: center;
+                gap: 8px;
+                padding: 10px 24px;
+                background-color: transparent !important;
+                color: #667eea !important;
+                border: 1px solid #667eea !important;
+                border-radius: 50px;
+                /* Pill shape */
                 text-decoration: none;
                 font-size: 14px;
+                font-weight: 500;
                 cursor: pointer;
-                transition: background 0.2s;
+                transition: all 0.2s ease;
+                width: 100%;
+                /* Full width for better mobile touch target */
+                line-height: normal !important;
+                /* Fix vertical alignment */
+                box-sizing: border-box;
+                box-shadow: none !important;
             }
 
-            .certificate-download:hover {
-                background: #5568d3;
+            a.button.certificate-download:hover {
+                background-color: #667eea !important;
+                color: #fff !important;
+                box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3) !important;
+                text-decoration: none !important;
+                transform: translateY(-1px);
+            }
+
+            a.button.certificate-download:focus,
+            a.button.certificate-download:active {
+                outline: none;
+                transform: translateY(1px);
             }
 
             .certificate-download .dashicons {
                 font-size: 18px;
                 width: 18px;
                 height: 18px;
+                line-height: 1 !important;
+                /* Reset dashicon line height */
+                margin-top: -1px;
+                /* Micro adjustment for perfect visual center */
+                color: inherit;
             }
 
             .no-certificates-message {
                 text-align: center;
                 padding: 60px 20px;
                 background: #f9f9f9;
-                border-radius: 8px;
+                border-radius: 12px;
+                border: 1px dashed #dce1e5;
             }
 
             .no-certificates-icon {
@@ -300,16 +340,16 @@ class Custom_Cert_BuddyBoss {
             }
 
             .no-certificates-icon .dashicons {
-                font-size: 80px;
-                width: 80px;
-                height: 80px;
-                color: #ccc;
+                font-size: 64px;
+                width: 64px;
+                height: 64px;
+                color: #dce1e5;
             }
 
             .no-certificates-message p {
                 margin: 0;
                 font-size: 16px;
-                color: #666;
+                color: #7f8c8d;
             }
 
             @media (max-width: 768px) {
@@ -327,7 +367,8 @@ class Custom_Cert_BuddyBoss {
      * @param string $template_name Template file name
      * @return string|false Template path or false
      */
-    private function locate_template($template_name) {
+    private function locate_template($template_name)
+    {
         // Check theme directory
         $theme_template = locate_template(array(
             'buddypress/members/single/custom-certificates/' . $template_name,
@@ -351,7 +392,8 @@ class Custom_Cert_BuddyBoss {
     /**
      * Enqueue scripts and styles
      */
-    public function enqueue_scripts() {
+    public function enqueue_scripts()
+    {
         if (!bp_is_user() || !bp_is_current_component('custom-certificates')) {
             return;
         }
@@ -362,7 +404,8 @@ class Custom_Cert_BuddyBoss {
     /**
      * BuddyBoss missing notice
      */
-    public function buddyboss_missing_notice() {
+    public function buddyboss_missing_notice()
+    {
         ?>
         <div class="notice notice-error">
             <p>
