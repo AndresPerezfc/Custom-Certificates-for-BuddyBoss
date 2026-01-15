@@ -40,6 +40,17 @@ class Custom_Cert_BuddyBoss
      */
     public function setup_nav()
     {
+        // Only check count if we are on a user profile
+        if (bp_is_user()) {
+            $user_id = bp_displayed_user_id();
+            $assignment = Custom_Cert_Assignment::get_instance();
+
+            // If user has no certificates, do not create the tab
+            if ($assignment->count_user_certificates($user_id) === 0) {
+                return;
+            }
+        }
+
         // Main tab
         bp_core_new_nav_item(array(
             'name' => __('Mis Certificados', 'custom-certificates'),
