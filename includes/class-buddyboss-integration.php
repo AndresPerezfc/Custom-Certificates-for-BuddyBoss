@@ -60,7 +60,7 @@ class Custom_Cert_BuddyBoss
 
         // Main tab
         bp_core_new_nav_item(array(
-            'name' => __('Mis Certificados', 'custom-certificates'),
+            'name' => __('Certificados Innova', 'custom-certificates'),
             'slug' => 'custom-certificates',
             'screen_function' => array($this, 'certificates_screen'),
             'position' => 80,
@@ -83,7 +83,7 @@ class Custom_Cert_BuddyBoss
      */
     public function certificates_title()
     {
-        echo __('Mis Certificados', 'custom-certificates');
+        echo __('Certificados Innova', 'custom-certificates');
     }
 
     /**
