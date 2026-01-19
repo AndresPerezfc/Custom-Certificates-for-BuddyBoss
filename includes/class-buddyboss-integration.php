@@ -61,10 +61,10 @@ class Custom_Cert_BuddyBoss
         // Main tab
         bp_core_new_nav_item(array(
             'name' => __('Certificados Innova', 'custom-certificates'),
-            'slug' => 'custom-certificates',
+            'slug' => 'certificados-innova',
             'screen_function' => array($this, 'certificates_screen'),
             'position' => 80,
-            'item_css_id' => 'custom-certificates'
+            'item_css_id' => 'certificados-innova'
         ));
     }
 
@@ -389,8 +389,8 @@ class Custom_Cert_BuddyBoss
     {
         // Check theme directory
         $theme_template = locate_template(array(
-            'buddypress/members/single/custom-certificates/' . $template_name,
-            'custom-certificates/' . $template_name,
+            'buddypress/members/single/certificados-innova/' . $template_name,
+            'certificados-innova/' . $template_name,
             $template_name
         ));
 
@@ -412,7 +412,7 @@ class Custom_Cert_BuddyBoss
      */
     public function enqueue_scripts()
     {
-        if (!bp_is_user() || !bp_is_current_component('custom-certificates')) {
+        if (!bp_is_user() || !bp_is_current_component('certificados-innova')) {
             return;
         }
 
