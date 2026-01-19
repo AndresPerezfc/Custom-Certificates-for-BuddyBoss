@@ -27,6 +27,7 @@ class Custom_Cert_Admin {
         // Add meta boxes
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
         add_action('save_post', array($this, 'save_template_meta'), 10, 2);
+        add_action('save_post', array($this, 'save_certificate_meta'), 10, 2);
 
         // Add admin columns
         add_filter('manage_bb_cert_template_posts_columns', array($this, 'template_columns'));
@@ -180,6 +181,8 @@ class Custom_Cert_Admin {
      * Certificate details metabox
      */
     public function certificate_details_metabox($post) {
+        wp_nonce_field('save_certificate_details', 'certificate_details_nonce');
+
         $user_id = get_post_meta($post->ID, '_cert_user_id', true);
         $template_id = get_post_meta($post->ID, '_cert_template_id', true);
         $verification_code = get_post_meta($post->ID, '_cert_verification_code', true);
@@ -187,6 +190,9 @@ class Custom_Cert_Admin {
 
         $user = get_userdata($user_id);
         $template = get_post($template_id);
+
+        // Format date for input field (Y-m-d)
+        $issue_date_formatted = $issue_date ? date('Y-m-d', strtotime($issue_date)) : '';
 
         ?>
         <div class="cert-details">
@@ -206,8 +212,15 @@ class Custom_Cert_Admin {
             </p>
 
             <p>
-                <strong><?php _e('Fecha de Emisión:', 'custom-certificates'); ?></strong><br>
-                <?php echo date_i18n(get_option('date_format'), strtotime($issue_date)); ?>
+                <strong><label for="cert_issue_date"><?php _e('Fecha de Emisión:', 'custom-certificates'); ?></label></strong><br>
+                <input type="date"
+                       id="cert_issue_date"
+                       name="cert_issue_date"
+                       value="<?php echo esc_attr($issue_date_formatted); ?>"
+                       style="width: 100%;">
+                <span class="description" style="font-size: 11px; color: #666;">
+                    <?php _e('Modifica la fecha si es necesario', 'custom-certificates'); ?>
+                </span>
             </p>
 
             <p>
@@ -250,6 +263,39 @@ class Custom_Cert_Admin {
         if (isset($_POST['cert_config'])) {
             $config = array_map('sanitize_text_field', $_POST['cert_config']);
             update_post_meta($post_id, '_cert_config', json_encode($config));
+        }
+    }
+
+    /**
+     * Save certificate assigned meta (issue date)
+     */
+    public function save_certificate_meta($post_id, $post) {
+        // Check if it's the right post type
+        if ($post->post_type !== 'bb_cert_assigned') {
+            return;
+        }
+
+        // Verify nonce
+        if (!isset($_POST['certificate_details_nonce']) || !wp_verify_nonce($_POST['certificate_details_nonce'], 'save_certificate_details')) {
+            return;
+        }
+
+        // Check autosave
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        // Check permissions
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        // Save issue date
+        if (isset($_POST['cert_issue_date']) && !empty($_POST['cert_issue_date'])) {
+            $issue_date = sanitize_text_field($_POST['cert_issue_date']);
+            // Convert to MySQL datetime format
+            $issue_date_mysql = date('Y-m-d H:i:s', strtotime($issue_date));
+            update_post_meta($post_id, '_cert_issue_date', $issue_date_mysql);
         }
     }
 
