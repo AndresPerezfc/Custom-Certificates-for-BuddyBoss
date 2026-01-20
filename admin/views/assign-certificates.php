@@ -64,7 +64,22 @@ if (!defined('ABSPATH')) {
                                     </p>
                                 </td>
                             </tr>
+                        </table>
 
+                        <!-- Dynamic custom variables container -->
+                        <div id="custom-variables-container" style="display: none;">
+                            <h3 style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                                <?php _e('Variables Personalizadas', 'custom-certificates'); ?>
+                            </h3>
+                            <p class="description" style="margin-bottom: 15px;">
+                                <?php _e('Completa los siguientes campos que serán incluidos en el certificado.', 'custom-certificates'); ?>
+                            </p>
+                            <table class="form-table" id="custom-variables-fields">
+                                <!-- Fields will be loaded dynamically via AJAX -->
+                            </table>
+                        </div>
+
+                        <table class="form-table">
                             <tr>
                                 <th scope="row">
                                     <label for="cert_description"><?php _e('Descripción Adicional', 'custom-certificates'); ?></label>

@@ -69,6 +69,20 @@
                 return;
             }
 
+            // Build custom_data object including dynamic variables
+            var customData = {
+                description: description
+            };
+
+            // Collect custom variable values
+            $('#custom-variables-fields input, #custom-variables-fields select, #custom-variables-fields textarea').each(function() {
+                var $field = $(this);
+                var varKey = $field.data('var-key');
+                if (varKey) {
+                    customData[varKey] = $field.val();
+                }
+            });
+
             // Disable button
             $button.prop('disabled', true).text(customCertAdmin.strings.assigning);
 
@@ -81,9 +95,7 @@
                     nonce: customCertAdmin.assign_nonce,
                     template_id: templateId,
                     user_ids: userIds,
-                    custom_data: {
-                        description: description
-                    }
+                    custom_data: customData
                 },
                 success: function(response) {
                     if (response.success) {
@@ -92,6 +104,8 @@
                         // Reset form
                         $form[0].reset();
                         $('#cert_users').val(null).trigger('change');
+                        $('#custom-variables-container').hide();
+                        $('#custom-variables-fields').empty();
 
                         // Reload after 2 seconds
                         setTimeout(function() {
@@ -163,11 +177,102 @@
             });
         });
 
-        // Template selection preview (if applicable)
+        // Template selection - load custom variables
         $('#cert_template').on('change', function() {
             var templateId = $(this).val();
-            // You can add template preview functionality here
+            var $container = $('#custom-variables-container');
+            var $fieldsTable = $('#custom-variables-fields');
+
+            // Clear previous fields
+            $fieldsTable.empty();
+
+            if (!templateId) {
+                $container.hide();
+                return;
+            }
+
+            // Load custom variables for this template
+            $.ajax({
+                url: customCertAdmin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'get_template_variables',
+                    template_id: templateId,
+                    nonce: customCertAdmin.search_nonce
+                },
+                success: function(response) {
+                    if (response.success && response.data.variables && response.data.variables.length > 0) {
+                        renderCustomVariableFields(response.data.variables);
+                        $container.slideDown();
+                    } else {
+                        $container.hide();
+                    }
+                },
+                error: function() {
+                    $container.hide();
+                }
+            });
         });
+
+        /**
+         * Render custom variable fields based on template configuration
+         */
+        function renderCustomVariableFields(variables) {
+            var $fieldsTable = $('#custom-variables-fields');
+            $fieldsTable.empty();
+
+            variables.forEach(function(variable) {
+                var fieldHtml = '';
+                var fieldId = 'custom_var_' + variable.key.toLowerCase();
+
+                // Build field based on type
+                switch (variable.type) {
+                    case 'select':
+                        fieldHtml = '<select id="' + fieldId + '" data-var-key="' + variable.key + '" style="width: 100%; max-width: 400px;">';
+                        fieldHtml += '<option value="">' + 'Selecciona una opción...' + '</option>';
+                        if (variable.options_array && variable.options_array.length > 0) {
+                            variable.options_array.forEach(function(option) {
+                                fieldHtml += '<option value="' + escapeHtml(option) + '">' + escapeHtml(option) + '</option>';
+                            });
+                        }
+                        fieldHtml += '</select>';
+                        break;
+
+                    case 'textarea':
+                        fieldHtml = '<textarea id="' + fieldId + '" data-var-key="' + variable.key + '" rows="3" style="width: 100%; max-width: 400px;"></textarea>';
+                        break;
+
+                    case 'text':
+                    default:
+                        fieldHtml = '<input type="text" id="' + fieldId + '" data-var-key="' + variable.key + '" style="width: 100%; max-width: 400px;">';
+                        break;
+                }
+
+                // Build table row
+                var rowHtml = '<tr>';
+                rowHtml += '<th scope="row"><label for="' + fieldId + '">' + escapeHtml(variable.label) + '</label></th>';
+                rowHtml += '<td>' + fieldHtml;
+                rowHtml += '<p class="description">Variable: <code>{' + variable.key + '}</code></p>';
+                rowHtml += '</td></tr>';
+
+                $fieldsTable.append(rowHtml);
+            });
+        }
+
+        /**
+         * Escape HTML special characters
+         */
+        function escapeHtml(text) {
+            if (!text) return '';
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
 
     });
 

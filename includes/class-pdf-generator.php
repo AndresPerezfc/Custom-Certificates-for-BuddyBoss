@@ -155,12 +155,28 @@ class Custom_Cert_PDF_Generator {
 
         // Get template content and replace variables
         $template_content = $template->post_content;
-        $template_content = $this->replace_variables($template_content, array(
+
+        // Build replacements array with standard variables
+        $replacements = array(
             'NOMBRE_USUARIO' => $user->display_name,
             'EMAIL_USUARIO' => $user->user_email,
             'FECHA_EMISION' => date_i18n(get_option('date_format'), strtotime($issue_date)),
             'CODIGO_VERIFICACION' => $verification_code
-        ));
+        );
+
+        // Add custom variables from custom_data
+        if (!empty($custom_data) && is_array($custom_data)) {
+            foreach ($custom_data as $key => $value) {
+                // Skip description field (it's not a template variable)
+                if ($key === 'description') {
+                    continue;
+                }
+                // Add custom variable (convert key to uppercase for consistency)
+                $replacements[strtoupper($key)] = $value;
+            }
+        }
+
+        $template_content = $this->replace_variables($template_content, $replacements);
 
         $data = array(
             'certificate_id' => $certificate_id,

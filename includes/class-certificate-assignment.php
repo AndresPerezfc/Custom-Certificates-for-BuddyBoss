@@ -25,6 +25,7 @@ class Custom_Cert_Assignment {
         add_action('wp_ajax_assign_certificate', array($this, 'ajax_assign_certificate'));
         add_action('wp_ajax_remove_certificate', array($this, 'ajax_remove_certificate'));
         add_action('wp_ajax_search_users', array($this, 'ajax_search_users'));
+        add_action('wp_ajax_get_template_variables', array($this, 'ajax_get_template_variables'));
     }
 
     /**
@@ -341,5 +342,40 @@ class Custom_Cert_Assignment {
         }
 
         wp_send_json_success($results);
+    }
+
+    /**
+     * AJAX: Get template custom variables
+     */
+    public function ajax_get_template_variables() {
+        check_ajax_referer('search_users', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => __('No tienes permisos', 'custom-certificates')));
+        }
+
+        $template_id = isset($_POST['template_id']) ? intval($_POST['template_id']) : 0;
+
+        if (!$template_id) {
+            wp_send_json_success(array('variables' => array()));
+        }
+
+        // Get template custom variables
+        $custom_variables = json_decode(get_post_meta($template_id, '_cert_custom_variables', true), true);
+
+        if (empty($custom_variables) || !is_array($custom_variables)) {
+            wp_send_json_success(array('variables' => array()));
+        }
+
+        // Process options for select fields
+        foreach ($custom_variables as &$var) {
+            if ($var['type'] === 'select' && !empty($var['options'])) {
+                // Convert comma-separated string to array
+                $options_array = array_map('trim', explode(',', $var['options']));
+                $var['options_array'] = $options_array;
+            }
+        }
+
+        wp_send_json_success(array('variables' => $custom_variables));
     }
 }

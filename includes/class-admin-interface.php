@@ -27,6 +27,7 @@ class Custom_Cert_Admin {
         // Add meta boxes
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
         add_action('save_post', array($this, 'save_template_meta'), 10, 2);
+        add_action('save_post', array($this, 'save_custom_variables_meta'), 10, 2);
         add_action('save_post', array($this, 'save_certificate_meta'), 10, 2);
 
         // Add admin columns
@@ -79,6 +80,16 @@ class Custom_Cert_Admin {
             'bb_cert_template',
             'normal',
             'high'
+        );
+
+        // Template custom variables
+        add_meta_box(
+            'cert_custom_variables',
+            __('Variables Personalizadas', 'custom-certificates'),
+            array($this, 'template_custom_variables_metabox'),
+            'bb_cert_template',
+            'normal',
+            'default'
         );
 
         // Certificate details
@@ -173,7 +184,193 @@ class Custom_Cert_Admin {
                 <li><code>{FECHA_EMISION}</code> - <?php _e('Fecha de emisión', 'custom-certificates'); ?></li>
                 <li><code>{CODIGO_VERIFICACION}</code> - <?php _e('Código de verificación', 'custom-certificates'); ?></li>
             </ul>
+            <?php
+            // Show custom variables if defined
+            $custom_variables = json_decode(get_post_meta($post->ID, '_cert_custom_variables', true), true);
+            if (!empty($custom_variables)) {
+                echo '<p style="margin-top: 15px;"><strong>' . __('Variables Personalizadas:', 'custom-certificates') . '</strong></p>';
+                echo '<ul style="margin-left: 20px;">';
+                foreach ($custom_variables as $var) {
+                    echo '<li><code>{' . esc_html(strtoupper($var['key'])) . '}</code> - ' . esc_html($var['label']) . '</li>';
+                }
+                echo '</ul>';
+            }
+            ?>
         </div>
+        <?php
+    }
+
+    /**
+     * Custom variables metabox for templates
+     */
+    public function template_custom_variables_metabox($post) {
+        wp_nonce_field('save_custom_variables', 'custom_variables_nonce');
+
+        $custom_variables = json_decode(get_post_meta($post->ID, '_cert_custom_variables', true), true);
+        if (!$custom_variables) {
+            $custom_variables = array();
+        }
+        ?>
+        <div id="cert-custom-variables-wrapper">
+            <p class="description">
+                <?php _e('Define variables personalizadas que se completarán al asignar el certificado. Estas variables podrán usarse en el contenido con el formato {NOMBRE_VARIABLE}.', 'custom-certificates'); ?>
+            </p>
+
+            <table class="widefat" id="custom-variables-table" style="margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;"><?php _e('Variable', 'custom-certificates'); ?></th>
+                        <th style="width: 20%;"><?php _e('Etiqueta', 'custom-certificates'); ?></th>
+                        <th style="width: 15%;"><?php _e('Tipo', 'custom-certificates'); ?></th>
+                        <th style="width: 35%;"><?php _e('Opciones (para select)', 'custom-certificates'); ?></th>
+                        <th style="width: 10%;"><?php _e('Acciones', 'custom-certificates'); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="custom-variables-body">
+                    <?php if (!empty($custom_variables)): ?>
+                        <?php foreach ($custom_variables as $index => $var): ?>
+                            <tr class="variable-row">
+                                <td>
+                                    <input type="text"
+                                           name="custom_vars[<?php echo $index; ?>][key]"
+                                           value="<?php echo esc_attr($var['key']); ?>"
+                                           placeholder="CATEGORIA"
+                                           style="width: 100%; text-transform: uppercase;"
+                                           pattern="[A-Z0-9_]+"
+                                           title="<?php _e('Solo letras mayúsculas, números y guiones bajos', 'custom-certificates'); ?>">
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           name="custom_vars[<?php echo $index; ?>][label]"
+                                           value="<?php echo esc_attr($var['label']); ?>"
+                                           placeholder="<?php _e('Categoría', 'custom-certificates'); ?>"
+                                           style="width: 100%;">
+                                </td>
+                                <td>
+                                    <select name="custom_vars[<?php echo $index; ?>][type]" style="width: 100%;" class="var-type-select">
+                                        <option value="text" <?php selected($var['type'], 'text'); ?>><?php _e('Texto', 'custom-certificates'); ?></option>
+                                        <option value="select" <?php selected($var['type'], 'select'); ?>><?php _e('Selección', 'custom-certificates'); ?></option>
+                                        <option value="textarea" <?php selected($var['type'], 'textarea'); ?>><?php _e('Área de texto', 'custom-certificates'); ?></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           name="custom_vars[<?php echo $index; ?>][options]"
+                                           value="<?php echo esc_attr($var['options']); ?>"
+                                           placeholder="<?php _e('Opción 1, Opción 2, Opción 3', 'custom-certificates'); ?>"
+                                           style="width: 100%;"
+                                           class="var-options-input"
+                                           <?php echo $var['type'] !== 'select' ? 'disabled' : ''; ?>>
+                                </td>
+                                <td style="text-align: center;">
+                                    <button type="button" class="button remove-variable" title="<?php _e('Eliminar', 'custom-certificates'); ?>">
+                                        <span class="dashicons dashicons-trash" style="vertical-align: middle;"></span>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 15px;">
+                <button type="button" class="button button-secondary" id="add-custom-variable">
+                    <span class="dashicons dashicons-plus-alt" style="vertical-align: middle;"></span>
+                    <?php _e('Agregar Variable', 'custom-certificates'); ?>
+                </button>
+            </p>
+        </div>
+
+        <script type="text/template" id="variable-row-template">
+            <tr class="variable-row">
+                <td>
+                    <input type="text"
+                           name="custom_vars[{{INDEX}}][key]"
+                           value=""
+                           placeholder="CATEGORIA"
+                           style="width: 100%; text-transform: uppercase;"
+                           pattern="[A-Z0-9_]+"
+                           title="<?php _e('Solo letras mayúsculas, números y guiones bajos', 'custom-certificates'); ?>">
+                </td>
+                <td>
+                    <input type="text"
+                           name="custom_vars[{{INDEX}}][label]"
+                           value=""
+                           placeholder="<?php _e('Categoría', 'custom-certificates'); ?>"
+                           style="width: 100%;">
+                </td>
+                <td>
+                    <select name="custom_vars[{{INDEX}}][type]" style="width: 100%;" class="var-type-select">
+                        <option value="text"><?php _e('Texto', 'custom-certificates'); ?></option>
+                        <option value="select"><?php _e('Selección', 'custom-certificates'); ?></option>
+                        <option value="textarea"><?php _e('Área de texto', 'custom-certificates'); ?></option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text"
+                           name="custom_vars[{{INDEX}}][options]"
+                           value=""
+                           placeholder="<?php _e('Opción 1, Opción 2, Opción 3', 'custom-certificates'); ?>"
+                           style="width: 100%;"
+                           class="var-options-input"
+                           disabled>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="button remove-variable" title="<?php _e('Eliminar', 'custom-certificates'); ?>">
+                        <span class="dashicons dashicons-trash" style="vertical-align: middle;"></span>
+                    </button>
+                </td>
+            </tr>
+        </script>
+
+        <script>
+        jQuery(document).ready(function($) {
+            var variableIndex = <?php echo count($custom_variables); ?>;
+
+            // Add new variable row
+            $('#add-custom-variable').on('click', function() {
+                var template = $('#variable-row-template').html();
+                template = template.replace(/\{\{INDEX\}\}/g, variableIndex);
+                $('#custom-variables-body').append(template);
+                variableIndex++;
+            });
+
+            // Remove variable row
+            $(document).on('click', '.remove-variable', function() {
+                $(this).closest('tr').remove();
+            });
+
+            // Toggle options field based on type
+            $(document).on('change', '.var-type-select', function() {
+                var $row = $(this).closest('tr');
+                var $optionsInput = $row.find('.var-options-input');
+                if ($(this).val() === 'select') {
+                    $optionsInput.prop('disabled', false);
+                } else {
+                    $optionsInput.prop('disabled', true).val('');
+                }
+            });
+
+            // Auto uppercase variable key
+            $(document).on('input', 'input[name*="[key]"]', function() {
+                $(this).val($(this).val().toUpperCase().replace(/[^A-Z0-9_]/g, ''));
+            });
+        });
+        </script>
+
+        <style>
+            #custom-variables-table th {
+                background: #f9f9f9;
+                padding: 10px;
+            }
+            #custom-variables-table td {
+                padding: 8px;
+                vertical-align: middle;
+            }
+            .variable-row:nth-child(even) {
+                background: #f9f9f9;
+            }
+        </style>
         <?php
     }
 
@@ -263,6 +460,51 @@ class Custom_Cert_Admin {
         if (isset($_POST['cert_config'])) {
             $config = array_map('sanitize_text_field', $_POST['cert_config']);
             update_post_meta($post_id, '_cert_config', json_encode($config));
+        }
+    }
+
+    /**
+     * Save custom variables meta
+     */
+    public function save_custom_variables_meta($post_id, $post) {
+        // Check if it's the right post type
+        if ($post->post_type !== 'bb_cert_template') {
+            return;
+        }
+
+        // Verify nonce
+        if (!isset($_POST['custom_variables_nonce']) || !wp_verify_nonce($_POST['custom_variables_nonce'], 'save_custom_variables')) {
+            return;
+        }
+
+        // Check autosave
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        // Check permissions
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        // Save custom variables
+        if (isset($_POST['custom_vars']) && is_array($_POST['custom_vars'])) {
+            $custom_vars = array();
+            foreach ($_POST['custom_vars'] as $var) {
+                // Only save if key and label are provided
+                if (!empty($var['key']) && !empty($var['label'])) {
+                    $custom_vars[] = array(
+                        'key' => strtoupper(sanitize_text_field($var['key'])),
+                        'label' => sanitize_text_field($var['label']),
+                        'type' => in_array($var['type'], array('text', 'select', 'textarea')) ? $var['type'] : 'text',
+                        'options' => isset($var['options']) ? sanitize_text_field($var['options']) : ''
+                    );
+                }
+            }
+            update_post_meta($post_id, '_cert_custom_variables', json_encode($custom_vars));
+        } else {
+            // If no variables submitted, clear the meta
+            delete_post_meta($post_id, '_cert_custom_variables');
         }
     }
 
@@ -428,8 +670,35 @@ class Custom_Cert_Admin {
      * Enqueue admin scripts
      */
     public function enqueue_admin_scripts($hook) {
-        // Only load on our admin pages
-        if (!in_array($hook, array('bb_cert_template_page_assign-certificates', 'post.php', 'post-new.php', 'edit.php'))) {
+        global $post_type;
+
+        // Check if we're on our plugin pages
+        $is_our_page = false;
+
+        // Check for assign certificates page (submenu page)
+        if (strpos($hook, 'assign-certificates') !== false) {
+            $is_our_page = true;
+        }
+
+        // Check for certificate template or assigned post types
+        if (in_array($hook, array('post.php', 'post-new.php', 'edit.php'))) {
+            if (isset($post_type) && in_array($post_type, array('bb_cert_template', 'bb_cert_assigned'))) {
+                $is_our_page = true;
+            }
+            // Also check via GET parameter
+            if (isset($_GET['post_type']) && in_array($_GET['post_type'], array('bb_cert_template', 'bb_cert_assigned'))) {
+                $is_our_page = true;
+            }
+            // Check for editing a specific post
+            if (isset($_GET['post'])) {
+                $editing_post = get_post($_GET['post']);
+                if ($editing_post && in_array($editing_post->post_type, array('bb_cert_template', 'bb_cert_assigned'))) {
+                    $is_our_page = true;
+                }
+            }
+        }
+
+        if (!$is_our_page) {
             return;
         }
 
