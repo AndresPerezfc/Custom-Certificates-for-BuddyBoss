@@ -243,10 +243,13 @@ class Custom_Cert_PDF_Generator {
         $template_content = $template->post_content;
 
         // Build replacements array with standard variables
+        // Date format: "20 de enero de 2026"
+        $formatted_date = date_i18n('j \d\e F \d\e Y', strtotime($issue_date));
+
         $replacements = array(
             'NOMBRE_USUARIO' => $user->display_name,
             'EMAIL_USUARIO' => $user->user_email,
-            'FECHA_EMISION' => date_i18n(get_option('date_format'), strtotime($issue_date)),
+            'FECHA_EMISION' => $formatted_date,
             'CODIGO_VERIFICACION' => $verification_code
         );
 
@@ -273,7 +276,7 @@ class Custom_Cert_PDF_Generator {
             'template_name' => $template->post_title,
             'verification_code' => $verification_code,
             'issue_date' => $issue_date,
-            'issue_date_formatted' => date_i18n(get_option('date_format'), strtotime($issue_date)),
+            'issue_date_formatted' => $formatted_date,
             'custom_data' => $custom_data,
             'template_config' => $template_config,
             'background_image' => get_the_post_thumbnail_url($template_id, 'full'),
