@@ -447,9 +447,19 @@ class Custom_Cert_Admin {
         $template_id = get_post_meta($post->ID, '_cert_template_id', true);
         $verification_code = get_post_meta($post->ID, '_cert_verification_code', true);
         $issue_date = get_post_meta($post->ID, '_cert_issue_date', true);
+        $custom_data = maybe_unserialize(get_post_meta($post->ID, '_cert_custom_data', true));
 
         $user = get_userdata($user_id);
         $template = get_post($template_id);
+
+        // Get template custom variables definition
+        $template_variables = array();
+        if ($template_id) {
+            $template_variables = json_decode(get_post_meta($template_id, '_cert_custom_variables', true), true);
+            if (!is_array($template_variables)) {
+                $template_variables = array();
+            }
+        }
 
         // Format date for input field (Y-m-d)
         $issue_date_formatted = $issue_date ? date('Y-m-d', strtotime($issue_date)) : '';
@@ -483,6 +493,75 @@ class Custom_Cert_Admin {
                 </span>
             </p>
 
+            <?php if (!empty($template_variables)): ?>
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+            <div class="cert-custom-variables-edit">
+                <h4 style="margin: 0 0 10px 0;"><?php _e('Variables Personalizadas', 'custom-certificates'); ?></h4>
+                <p class="description" style="margin-bottom: 15px; font-size: 11px; color: #666;">
+                    <?php _e('Puedes editar los valores de las variables personalizadas asignadas a este certificado.', 'custom-certificates'); ?>
+                </p>
+
+                <?php foreach ($template_variables as $variable): ?>
+                    <?php
+                    $var_key = $variable['key'];
+                    $var_label = $variable['label'];
+                    $var_type = isset($variable['type']) ? $variable['type'] : 'text';
+                    $var_options = isset($variable['options']) ? $variable['options'] : '';
+                    $current_value = isset($custom_data[$var_key]) ? $custom_data[$var_key] : '';
+                    $field_id = 'cert_custom_var_' . sanitize_key($var_key);
+                    ?>
+                    <p>
+                        <strong><label for="<?php echo esc_attr($field_id); ?>"><?php echo esc_html($var_label); ?>:</label></strong><br>
+                        <?php if ($var_type === 'select' && !empty($var_options)): ?>
+                            <?php $options_array = array_map('trim', explode(',', $var_options)); ?>
+                            <select id="<?php echo esc_attr($field_id); ?>"
+                                    name="cert_custom_data[<?php echo esc_attr($var_key); ?>]"
+                                    style="width: 100%;">
+                                <option value=""><?php _e('Selecciona una opción...', 'custom-certificates'); ?></option>
+                                <?php foreach ($options_array as $option): ?>
+                                    <option value="<?php echo esc_attr($option); ?>" <?php selected($current_value, $option); ?>>
+                                        <?php echo esc_html($option); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php elseif ($var_type === 'textarea'): ?>
+                            <textarea id="<?php echo esc_attr($field_id); ?>"
+                                      name="cert_custom_data[<?php echo esc_attr($var_key); ?>]"
+                                      rows="3"
+                                      style="width: 100%;"><?php echo esc_textarea($current_value); ?></textarea>
+                        <?php else: ?>
+                            <input type="text"
+                                   id="<?php echo esc_attr($field_id); ?>"
+                                   name="cert_custom_data[<?php echo esc_attr($var_key); ?>]"
+                                   value="<?php echo esc_attr($current_value); ?>"
+                                   style="width: 100%;">
+                        <?php endif; ?>
+                        <span class="description" style="font-size: 10px; color: #999;">
+                            <?php echo sprintf(__('Variable: {%s}', 'custom-certificates'), esc_html(strtoupper($var_key))); ?>
+                        </span>
+                    </p>
+                <?php endforeach; ?>
+            </div>
+            <?php elseif (!empty($custom_data) && is_array($custom_data)): ?>
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+            <div class="cert-custom-variables-edit">
+                <h4 style="margin: 0 0 10px 0;"><?php _e('Datos Personalizados', 'custom-certificates'); ?></h4>
+                <?php foreach ($custom_data as $key => $value): ?>
+                    <?php if ($key === 'description') continue; ?>
+                    <?php $field_id = 'cert_custom_var_' . sanitize_key($key); ?>
+                    <p>
+                        <strong><label for="<?php echo esc_attr($field_id); ?>"><?php echo esc_html(ucfirst($key)); ?>:</label></strong><br>
+                        <input type="text"
+                               id="<?php echo esc_attr($field_id); ?>"
+                               name="cert_custom_data[<?php echo esc_attr($key); ?>]"
+                               value="<?php echo esc_attr($value); ?>"
+                               style="width: 100%;">
+                    </p>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
             <p>
                 <a href="<?php echo esc_url(Custom_Cert_PDF_Generator::get_download_url($post->ID)); ?>"
                    class="button button-primary"
@@ -601,6 +680,30 @@ class Custom_Cert_Admin {
             // Convert to MySQL datetime format
             $issue_date_mysql = date('Y-m-d H:i:s', strtotime($issue_date));
             update_post_meta($post_id, '_cert_issue_date', $issue_date_mysql);
+        }
+
+        // Save custom data (variables personalizadas)
+        if (isset($_POST['cert_custom_data']) && is_array($_POST['cert_custom_data'])) {
+            // Get existing custom data to preserve description and other fields
+            $existing_data = maybe_unserialize(get_post_meta($post_id, '_cert_custom_data', true));
+            if (!is_array($existing_data)) {
+                $existing_data = array();
+            }
+
+            // Sanitize and merge new values
+            $new_custom_data = array();
+            foreach ($_POST['cert_custom_data'] as $key => $value) {
+                $sanitized_key = sanitize_key($key);
+                $sanitized_value = sanitize_text_field($value);
+                $new_custom_data[$sanitized_key] = $sanitized_value;
+            }
+
+            // Preserve description if it existed
+            if (isset($existing_data['description'])) {
+                $new_custom_data['description'] = $existing_data['description'];
+            }
+
+            update_post_meta($post_id, '_cert_custom_data', maybe_serialize($new_custom_data));
         }
     }
 
