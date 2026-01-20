@@ -225,6 +225,39 @@ class Custom_Cert_Admin {
                 }
                 echo '</ul>';
             }
+
+            // Show BuddyBoss/BuddyPress xprofile fields if available
+            if (function_exists('bp_xprofile_get_groups')) {
+                $xprofile_groups = bp_xprofile_get_groups(array(
+                    'fetch_fields'      => true,
+                    'hide_empty_groups' => true,
+                    'hide_empty_fields' => true,
+                ));
+
+                if (!empty($xprofile_groups)) {
+                    echo '<p style="margin-top: 15px;"><strong>' . __('Variables de Perfil BuddyBoss:', 'custom-certificates') . '</strong></p>';
+                    echo '<p class="description" style="margin-bottom: 10px; font-style: italic;">' . __('Estos campos se obtienen del perfil extendido del usuario (solo si tienen valor).', 'custom-certificates') . '</p>';
+
+                    foreach ($xprofile_groups as $group) {
+                        if (empty($group->fields)) {
+                            continue;
+                        }
+
+                        echo '<p style="margin: 10px 0 5px 0; font-weight: 600; color: #1d2327;">' . esc_html($group->name) . ':</p>';
+                        echo '<ul style="margin-left: 20px; margin-top: 5px;">';
+
+                        foreach ($group->fields as $field) {
+                            // Sanitize field name to show what variable to use
+                            $var_name = strtoupper(preg_replace('/[^A-Z0-9]+/i', '_', remove_accents($field->name)));
+                            $var_name = trim($var_name, '_');
+
+                            echo '<li><code>{' . esc_html($var_name) . '}</code> - ' . esc_html($field->name) . '</li>';
+                        }
+
+                        echo '</ul>';
+                    }
+                }
+            }
             ?>
         </div>
         <?php

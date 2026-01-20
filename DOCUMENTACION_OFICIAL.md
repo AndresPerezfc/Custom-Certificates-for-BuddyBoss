@@ -80,10 +80,31 @@ Desde **Certificados > Asignar Certificados**:
 
 ### Variables de Plantilla
 Al diseñar una plantilla, utilice los siguientes marcadores que serán reemplazados dinámicamente al generar el PDF:
+
+#### Variables Estándar
 *   `{NOMBRE_USUARIO}`: Nombre visible del usuario.
 *   `{EMAIL_USUARIO}`: Correo electrónico del usuario.
-*   `{FECHA_EMISION}`: Fecha en que se asignó el certificado (formato local de WP).
+*   `{FECHA_EMISION}`: Fecha en que se asignó el certificado (formato: "20 de enero de 2026").
 *   `{CODIGO_VERIFICACION}`: Código alfanumérico único (10 caracteres).
+
+#### Variables de Campos de Perfil BuddyBoss (xprofile)
+El plugin detecta automáticamente **todos los campos de perfil extendido** configurados en BuddyBoss y los hace disponibles como variables. El nombre del campo se convierte automáticamente:
+- Se eliminan acentos
+- Se convierte a mayúsculas
+- Los espacios se reemplazan por guiones bajos
+
+**Ejemplos:**
+| Campo en BuddyBoss | Variable a usar |
+|--------------------|-----------------|
+| Identificación | `{IDENTIFICACION}` |
+| Número de Documento | `{NUMERO_DE_DOCUMENTO}` |
+| Fecha de Nacimiento | `{FECHA_DE_NACIMIENTO}` |
+| Cargo | `{CARGO}` |
+
+> **Nota:** Solo se incluyen los campos que tienen valor para el usuario. Si un campo está vacío, la variable no será reemplazada.
+
+#### Variables Personalizadas por Plantilla
+Además de las variables automáticas, se pueden definir variables personalizadas específicas para cada plantilla desde el metabox "Variables Personalizadas". Estas se completan al momento de asignar el certificado.
 
 ### Motor de PDF
 *   **Librería**: mPDF (vía Composer).

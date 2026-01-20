@@ -253,6 +253,12 @@ class Custom_Cert_PDF_Generator {
             'CODIGO_VERIFICACION' => $verification_code
         );
 
+        // Add BuddyBoss/BuddyPress xprofile fields as variables
+        $xprofile_data = $this->get_user_xprofile_data($user_id);
+        if (!empty($xprofile_data)) {
+            $replacements = array_merge($replacements, $xprofile_data);
+        }
+
         // Add custom variables from custom_data
         if (!empty($custom_data) && is_array($custom_data)) {
             foreach ($custom_data as $key => $value) {
@@ -489,5 +495,90 @@ class Custom_Cert_PDF_Generator {
                 'css' => 'Lato, sans-serif'
             )
         );
+    }
+
+    /**
+     * Get user xprofile data from BuddyBoss/BuddyPress
+     *
+     * Retrieves all extended profile fields for a user and returns them
+     * as an associative array with sanitized field names as keys.
+     *
+     * @param int $user_id User ID
+     * @return array Associative array of field_name => value
+     */
+    private function get_user_xprofile_data($user_id) {
+        $xprofile_data = array();
+
+        // Check if BuddyBoss/BuddyPress xprofile functions are available
+        if (!function_exists('bp_xprofile_get_groups')) {
+            return $xprofile_data;
+        }
+
+        // Get all profile field groups with their fields
+        $field_groups = bp_xprofile_get_groups(array(
+            'fetch_fields' => true,
+            'hide_empty_groups' => false,
+            'hide_empty_fields' => false
+        ));
+
+        if (empty($field_groups)) {
+            return $xprofile_data;
+        }
+
+        foreach ($field_groups as $group) {
+            if (empty($group->fields)) {
+                continue;
+            }
+
+            foreach ($group->fields as $field) {
+                // Get field value for this user
+                $field_value = xprofile_get_field_data($field->id, $user_id);
+
+                // Skip empty values
+                if ($field_value === '' || $field_value === false) {
+                    continue;
+                }
+
+                // Handle array values (like multi-select fields)
+                if (is_array($field_value)) {
+                    $field_value = implode(', ', $field_value);
+                }
+
+                // Create variable name from field name
+                $var_name = $this->sanitize_xprofile_field_name($field->name);
+
+                // Add to data array
+                $xprofile_data[$var_name] = $field_value;
+            }
+        }
+
+        return $xprofile_data;
+    }
+
+    /**
+     * Sanitize xprofile field name for use as template variable
+     *
+     * Converts field names like "Identificación" to "IDENTIFICACION"
+     * - Removes accents
+     * - Converts to uppercase
+     * - Replaces spaces and special characters with underscores
+     *
+     * @param string $field_name Original field name
+     * @return string Sanitized variable name
+     */
+    private function sanitize_xprofile_field_name($field_name) {
+        // Remove accents (converts "Identificación" to "Identificacion")
+        $name = remove_accents($field_name);
+
+        // Convert to uppercase
+        $name = strtoupper($name);
+
+        // Replace spaces and special characters with underscores
+        $name = preg_replace('/[^A-Z0-9]+/', '_', $name);
+
+        // Remove leading/trailing underscores
+        $name = trim($name, '_');
+
+        return $name;
     }
 }
