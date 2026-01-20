@@ -171,12 +171,31 @@ input[type="color"]:focus {
 
 /* Meta Box Enhancements */
 .postbox .inside {
-    margin: 0;
-    padding: 15px;
+    margin: 0 !important;
+    padding: 15px !important;
+}
+
+#side-sortables .postbox .inside {
+    padding: 12px !important;
 }
 
 .postbox .inside .form-table {
     margin: 0;
+}
+
+/* Certificate details metabox */
+.cert-details {
+    padding: 0;
+}
+
+.cert-details p {
+    margin: 0 0 12px 0;
+}
+
+.cert-details hr {
+    margin: 15px 0;
+    border: none;
+    border-top: 1px solid #ddd;
 }
 
 /* Certificate Config Variables Info Box */
