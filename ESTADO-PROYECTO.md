@@ -322,3 +322,53 @@ Puedes probarlo, personalizarlo o distribuirlo inmediatamente.
 **Última actualización:** 2024-12-10 11:54
 **Versión del plugin:** 1.0.0
 **Estado:** Producción Ready
+
+
+
+● La funcionalidad de selección de fuentes está implementada.
+
+  Resumen de la implementación
+
+  Cambios realizados:
+
+  1. Selector de fuentes en la plantilla (class-admin-interface.php)
+    - Nuevo campo dropdown en "Configuración del Certificado"
+    - Fuentes disponibles:
+      - DejaVu Sans (Por defecto)
+      - Montserrat
+      - Open Sans
+      - Helvetica
+      - Roboto
+      - Lato
+  2. Configuración de mPDF (class-pdf-generator.php)
+    - Mapeo de fuentes a mPDF
+    - Configuración de directorio de fuentes personalizado
+    - Aplicación de la fuente seleccionada al generar el PDF
+  3. Fuentes descargadas (assets/fonts/)
+    - 20 archivos TTF (Regular, Bold, ExtraBold, Italic, BoldItalic para cada fuente)
+
+  Cómo usarlo:
+
+  1. Ve a Certificados > edita una plantilla
+  2. En el metabox "Configuración del Certificado" verás el nuevo campo "Fuente"
+  3. Selecciona la fuente deseada (ej: Montserrat)
+  4. Guarda la plantilla
+  5. Al generar el PDF, el texto usará la fuente seleccionada
+
+  Fuentes disponibles:
+  ┌─────────────┬───────────────────────┐
+  │   Fuente    │        Estilo         │
+  ├─────────────┼───────────────────────┤
+  │ DejaVu Sans │ Sans-serif (defecto)  │
+  ├─────────────┼───────────────────────┤
+  │ Montserrat  │ Sans-serif moderno    │
+  ├─────────────┼───────────────────────┤
+  │ Open Sans   │ Sans-serif legible    │
+  ├─────────────┼───────────────────────┤
+  │ Rubik       │ Sans-serif redondeado │
+  ├─────────────┼───────────────────────┤
+  │ Helvetica   │ Sans-serif clásico    │
+  ├─────────────┼───────────────────────┤
+  │ Roboto      │ Sans-serif de Google  │
+  ├─────────────┼───────────────────────┤
+  │ Lato        │ Sans-serif elegante   │

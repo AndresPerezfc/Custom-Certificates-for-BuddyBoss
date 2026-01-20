@@ -85,8 +85,79 @@ class Custom_Cert_PDF_Generator {
             // Set format: Letter-L for landscape, Letter-P for portrait
             $format = ($orientation === 'portrait') ? 'Letter-P' : 'Letter-L';
 
-            // Create PDF with configured orientation
-            $mpdf = new \Mpdf\Mpdf(array(
+            // Get font family from config
+            $font_family = 'dejavusans'; // Default
+            if (isset($data['template_config']['font_family'])) {
+                $font_family = $data['template_config']['font_family'];
+            }
+
+            // Map font keys to mPDF font names
+            $font_map = $this->get_font_map();
+            $mpdf_font = isset($font_map[$font_family]) ? $font_map[$font_family]['mpdf'] : 'dejavusans';
+
+            // Custom fonts directory
+            $custom_font_dir = CUSTOM_CERT_PLUGIN_DIR . 'assets/fonts/';
+
+            // Define custom fonts for mPDF
+            $custom_font_data = array(
+                'montserrat' => [
+                    'R' => 'Montserrat-Regular.ttf',
+                    'B' => 'Montserrat-Bold.ttf',
+                    'I' => 'Montserrat-Italic.ttf',
+                    'BI' => 'Montserrat-BoldItalic.ttf',
+                ],
+                'montserratblack' => [
+                    'R' => 'Montserrat-Black.ttf',
+                    'B' => 'Montserrat-Black.ttf',
+                    'I' => 'Montserrat-Black.ttf',
+                    'BI' => 'Montserrat-Black.ttf',
+                ],
+                'montserratextrabold' => [
+                    'R' => 'Montserrat-ExtraBold.ttf',
+                    'B' => 'Montserrat-ExtraBold.ttf',
+                    'I' => 'Montserrat-ExtraBold.ttf',
+                    'BI' => 'Montserrat-ExtraBold.ttf',
+                ],
+                'opensans' => [
+                    'R' => 'OpenSans-Regular.ttf',
+                    'B' => 'OpenSans-Bold.ttf',
+                    'I' => 'OpenSans-Italic.ttf',
+                    'BI' => 'OpenSans-BoldItalic.ttf',
+                ],
+                'opensansextrabold' => [
+                    'R' => 'OpenSans-ExtraBold.ttf',
+                    'B' => 'OpenSans-ExtraBold.ttf',
+                    'I' => 'OpenSans-ExtraBoldItalic.ttf',
+                    'BI' => 'OpenSans-ExtraBoldItalic.ttf',
+                ],
+                'roboto' => [
+                    'R' => 'Roboto-Regular.ttf',
+                    'B' => 'Roboto-Bold.ttf',
+                    'I' => 'Roboto-Italic.ttf',
+                    'BI' => 'Roboto-BoldItalic.ttf',
+                ],
+                'robotoblack' => [
+                    'R' => 'Roboto-Black.ttf',
+                    'B' => 'Roboto-Black.ttf',
+                    'I' => 'Roboto-BlackItalic.ttf',
+                    'BI' => 'Roboto-BlackItalic.ttf',
+                ],
+                'lato' => [
+                    'R' => 'Lato-Regular.ttf',
+                    'B' => 'Lato-Bold.ttf',
+                    'I' => 'Lato-Italic.ttf',
+                    'BI' => 'Lato-BoldItalic.ttf',
+                ],
+                'latoblack' => [
+                    'R' => 'Lato-Black.ttf',
+                    'B' => 'Lato-Black.ttf',
+                    'I' => 'Lato-BlackItalic.ttf',
+                    'BI' => 'Lato-BlackItalic.ttf',
+                ],
+            );
+
+            // Build mPDF config
+            $mpdf_config = array(
                 'mode' => 'utf-8',
                 'format' => $format,
                 'margin_left' => 0,
@@ -96,8 +167,23 @@ class Custom_Cert_PDF_Generator {
                 'margin_header' => 0,
                 'margin_footer' => 0,
                 'default_font_size' => 12,
-                'default_font' => 'dejavusans'
-            ));
+                'default_font' => $mpdf_font
+            );
+
+            // Add custom font directory if it exists
+            if (is_dir($custom_font_dir)) {
+                $mpdf_config['fontDir'] = array_merge(
+                    (new \Mpdf\Config\ConfigVariables())->getDefaults()['fontDir'],
+                    [$custom_font_dir]
+                );
+                $mpdf_config['fontdata'] = array_merge(
+                    (new \Mpdf\Config\FontVariables())->getDefaults()['fontdata'],
+                    $custom_font_data
+                );
+            }
+
+            // Create PDF with configured orientation and font
+            $mpdf = new \Mpdf\Mpdf($mpdf_config);
 
             // Disable automatic page breaks
             $mpdf->shrink_tables_to_fit = 0;
@@ -363,5 +449,42 @@ class Custom_Cert_PDF_Generator {
         }
 
         return $content;
+    }
+
+    /**
+     * Get font mapping for mPDF
+     *
+     * Maps user-friendly font names to mPDF compatible fonts
+     * and provides CSS font-family strings
+     *
+     * @return array Font mapping
+     */
+    private function get_font_map() {
+        return array(
+            'dejavusans' => array(
+                'mpdf' => 'dejavusans',
+                'css' => 'DejaVu Sans, sans-serif'
+            ),
+            'montserrat' => array(
+                'mpdf' => 'montserrat',
+                'css' => 'Montserrat, sans-serif'
+            ),
+            'opensans' => array(
+                'mpdf' => 'opensans',
+                'css' => 'Open Sans, sans-serif'
+            ),
+            'helvetica' => array(
+                'mpdf' => 'helvetica',
+                'css' => 'Helvetica, Arial, sans-serif'
+            ),
+            'roboto' => array(
+                'mpdf' => 'roboto',
+                'css' => 'Roboto, sans-serif'
+            ),
+            'lato' => array(
+                'mpdf' => 'lato',
+                'css' => 'Lato, sans-serif'
+            )
+        );
     }
 }

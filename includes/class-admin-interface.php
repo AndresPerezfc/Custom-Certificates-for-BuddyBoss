@@ -115,9 +115,24 @@ class Custom_Cert_Admin {
                 'text_color' => '#000000',
                 'bg_color' => '#ffffff',
                 'font_size' => '24',
-                'orientation' => 'landscape'
+                'orientation' => 'landscape',
+                'font_family' => 'dejavusans'
             );
         }
+        // Ensure font_family exists for older configs
+        if (!isset($config['font_family'])) {
+            $config['font_family'] = 'dejavusans';
+        }
+
+        // Available fonts
+        $available_fonts = array(
+            'dejavusans' => 'DejaVu Sans (Por defecto)',
+            'montserrat' => 'Montserrat',
+            'opensans' => 'Open Sans',
+            'helvetica' => 'Helvetica',
+            'roboto' => 'Roboto',
+            'lato' => 'Lato'
+        );
 
         ?>
         <table class="form-table">
@@ -171,6 +186,21 @@ class Custom_Cert_Admin {
                             <?php _e('Vertical (Portrait)', 'custom-certificates'); ?>
                         </option>
                     </select>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="cert_font_family"><?php _e('Fuente', 'custom-certificates'); ?></label>
+                </th>
+                <td>
+                    <select id="cert_font_family" name="cert_config[font_family]" style="min-width: 200px;">
+                        <?php foreach ($available_fonts as $font_key => $font_name): ?>
+                            <option value="<?php echo esc_attr($font_key); ?>" <?php selected($config['font_family'], $font_key); ?> style="font-family: <?php echo esc_attr($font_name); ?>">
+                                <?php echo esc_html($font_name); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description"><?php _e('Selecciona la fuente para el texto del certificado', 'custom-certificates'); ?></p>
                 </td>
             </tr>
         </table>
