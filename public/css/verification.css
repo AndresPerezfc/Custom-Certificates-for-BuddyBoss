@@ -1,0 +1,304 @@
+/**
+ * Certificate Verification Styles
+ */
+
+.cert-verification-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.cert-verification-form-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+}
+
+.cert-verification-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 12px 0;
+    text-align: center;
+}
+
+.cert-verification-description {
+    font-size: 15px;
+    color: #666;
+    margin: 0 0 30px 0;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.cert-verification-form {
+    margin: 0;
+}
+
+.cert-verification-input-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cert-verification-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 14px 18px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: monospace;
+}
+
+.cert-verification-input:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.15);
+}
+
+.cert-verification-input::placeholder {
+    text-transform: none;
+    letter-spacing: normal;
+    font-family: inherit;
+    color: #999;
+}
+
+.cert-verification-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 120px;
+}
+
+.cert-verification-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 113, 177, 0.35);
+}
+
+.cert-verification-button:active {
+    transform: translateY(0);
+}
+
+.cert-verification-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cert-verification-button .spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Result Styles */
+.cert-verification-result {
+    margin-top: 30px;
+    padding: 24px;
+    border-radius: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Valid Certificate */
+.cert-verification-result.valid {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #86efac;
+}
+
+.cert-verification-result.valid .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.cert-verification-result.valid .result-icon {
+    width: 48px;
+    height: 48px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cert-verification-result.valid .result-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #ffffff;
+}
+
+.cert-verification-result.valid .result-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #166534;
+    margin: 0;
+}
+
+.cert-verification-result.valid .result-subtitle {
+    font-size: 14px;
+    color: #15803d;
+    margin: 4px 0 0 0;
+}
+
+/* Certificate Details */
+.cert-details-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.cert-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cert-detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #166534;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cert-detail-value {
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.cert-detail-value.code {
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    letter-spacing: 1px;
+}
+
+/* Invalid Certificate */
+.cert-verification-result.invalid {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fca5a5;
+}
+
+.cert-verification-result.invalid .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cert-verification-result.invalid .result-icon {
+    width: 48px;
+    height: 48px;
+    background: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cert-verification-result.invalid .result-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #ffffff;
+}
+
+.cert-verification-result.invalid .result-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #991b1b;
+    margin: 0;
+}
+
+.cert-verification-result.invalid .result-subtitle {
+    font-size: 14px;
+    color: #b91c1c;
+    margin: 4px 0 0 0;
+}
+
+/* Error state */
+.cert-verification-result.error {
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+}
+
+.cert-verification-result.error .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cert-verification-result.error .result-icon {
+    width: 48px;
+    height: 48px;
+    background: #f97316;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cert-verification-result.error .result-icon svg {
+    width: 28px;
+    height: 28px;
+    color: #ffffff;
+}
+
+.cert-verification-result.error .result-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #9a3412;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .cert-verification-form-container {
+        padding: 24px;
+    }
+
+    .cert-verification-title {
+        font-size: 22px;
+    }
+
+    .cert-verification-input-group {
+        flex-direction: column;
+    }
+
+    .cert-verification-button {
+        width: 100%;
+    }
+
+    .cert-verification-result .result-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}

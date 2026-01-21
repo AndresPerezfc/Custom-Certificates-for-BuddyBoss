@@ -114,8 +114,40 @@ Además de las variables automáticas, se pueden definir variables personalizada
 
 ### Integración BuddyBoss
 *   Utiliza la API `bp_core_new_nav_item` para inyectar la navegación.
-*   Slug del componente: `custom-certificates`.
+*   Slug del componente: `certificados-innova`.
 *   Compatible con temas hijos: Busca plantillas en `tu-tema/custom-certificates/` antes de usar las del plugin.
+
+### Verificación Pública de Certificados
+
+El plugin incluye un sistema de verificación pública que permite a cualquier persona comprobar la autenticidad de un certificado mediante su código de verificación.
+
+#### Shortcode
+```
+[verificar_certificado]
+```
+
+#### Atributos Disponibles
+| Atributo | Descripción | Valor por defecto |
+|----------|-------------|-------------------|
+| `title` | Título del formulario | "Verificar Certificado" |
+| `description` | Texto descriptivo | "Ingresa el código de verificación..." |
+| `button_text` | Texto del botón | "Verificar" |
+| `placeholder` | Placeholder del campo | "Ej: ABC123XYZ0" |
+
+#### Ejemplo de Uso
+```
+[verificar_certificado title="Validar Certificado" button_text="Comprobar"]
+```
+
+#### Cómo Crear la Página de Verificación
+1. Crear una nueva página en WordPress (ej: "Verificar Certificado")
+2. Agregar el shortcode `[verificar_certificado]` en el contenido
+3. Publicar la página
+4. Compartir la URL de la página para que terceros puedan verificar certificados
+
+#### Resultado de la Verificación
+- **Certificado válido**: Muestra nombre del titular, nombre del certificado, fecha de emisión y código
+- **Certificado no encontrado**: Mensaje indicando que el código no corresponde a ningún certificado
 
 ---
 

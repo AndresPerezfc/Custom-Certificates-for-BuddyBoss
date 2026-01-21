@@ -92,6 +92,7 @@ class Custom_Certificates
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-pdf-generator.php';
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-buddyboss-integration.php';
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-admin-interface.php';
+        require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-certificate-verification.php';
 
         // Helper functions
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/functions.php';
@@ -107,6 +108,7 @@ class Custom_Certificates
         Custom_Cert_Assignment::get_instance();
         Custom_Cert_PDF_Generator::get_instance();
         Custom_Cert_BuddyBoss::get_instance();
+        Custom_Cert_Verification::get_instance();
 
         // Admin interface (only in admin)
         if (is_admin()) {
