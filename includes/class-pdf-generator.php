@@ -189,11 +189,23 @@ class Custom_Cert_PDF_Generator {
             $mpdf->shrink_tables_to_fit = 0;
             $mpdf->keep_table_proportions = false;
 
-            // Generate HTML
+            // Generate HTML for main page
             $html = $this->generate_html($data);
 
-            // Write HTML to PDF
+            // Write HTML to PDF (main page)
             $mpdf->WriteHTML($html);
+
+            // Add additional pages if defined
+            if (!empty($data['additional_pages'])) {
+                foreach ($data['additional_pages'] as $page) {
+                    // Add new page
+                    $mpdf->AddPage();
+
+                    // Generate HTML for additional page
+                    $page_html = $this->generate_additional_page_html($page, $data);
+                    $mpdf->WriteHTML($page_html);
+                }
+            }
 
             // Output PDF inline (display in browser)
             $filename = sanitize_file_name(sprintf(
@@ -273,6 +285,28 @@ class Custom_Cert_PDF_Generator {
 
         $template_content = $this->replace_variables($template_content, $replacements);
 
+        // Get additional pages and process their content
+        $additional_pages_raw = json_decode(get_post_meta($template_id, '_cert_additional_pages', true), true);
+        $additional_pages = array();
+        if (!empty($additional_pages_raw) && is_array($additional_pages_raw)) {
+            foreach ($additional_pages_raw as $page) {
+                $page_data = array(
+                    'image_id' => isset($page['image_id']) ? intval($page['image_id']) : 0,
+                    'image_url' => '',
+                    'content' => ''
+                );
+                // Get image URL
+                if ($page_data['image_id'] > 0) {
+                    $page_data['image_url'] = wp_get_attachment_url($page_data['image_id']);
+                }
+                // Process content with variable replacements
+                if (!empty($page['content'])) {
+                    $page_data['content'] = $this->replace_variables($page['content'], $replacements);
+                }
+                $additional_pages[] = $page_data;
+            }
+        }
+
         $data = array(
             'certificate_id' => $certificate_id,
             'user_id' => $user_id,
@@ -286,7 +320,8 @@ class Custom_Cert_PDF_Generator {
             'custom_data' => $custom_data,
             'template_config' => $template_config,
             'background_image' => get_the_post_thumbnail_url($template_id, 'full'),
-            'template_content' => $template_content // Processed content with variables replaced
+            'template_content' => $template_content, // Processed content with variables replaced
+            'additional_pages' => $additional_pages // Additional pages data
         );
 
         return apply_filters('custom_cert_pdf_data', $data, $certificate_id);
@@ -316,6 +351,49 @@ class Custom_Cert_PDF_Generator {
         $html = ob_get_clean();
 
         return apply_filters('custom_cert_pdf_html', $html, $data);
+    }
+
+    /**
+     * Generate HTML for additional page
+     *
+     * @param array $page Page data (image_url, content)
+     * @param array $data Certificate data (for context)
+     * @return string HTML content
+     */
+    private function generate_additional_page_html($page, $data) {
+        $background_image = isset($page['image_url']) ? $page['image_url'] : '';
+        $content = isset($page['content']) ? $page['content'] : '';
+
+        // Get orientation from template config
+        $orientation = isset($data['template_config']['orientation']) ? $data['template_config']['orientation'] : 'landscape';
+
+        // Letter size dimensions in mm (add small overflow to ensure full coverage)
+        // Letter-L (landscape): 279.4mm x 215.9mm
+        // Letter-P (portrait): 215.9mm x 279.4mm
+        if ($orientation === 'portrait') {
+            $page_width = '216mm';
+            $page_height = '280mm';
+        } else {
+            $page_width = '280mm';
+            $page_height = '216mm';
+        }
+
+        // For additional pages, use a simpler approach without full HTML document
+        // This works better with mPDF's AddPage() method
+        ob_start();
+        if ($background_image): ?>
+<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: 0; padding: 0;">
+    <img src="<?php echo esc_url($background_image); ?>" style="width: <?php echo $page_width; ?>; height: <?php echo $page_height; ?>; display: block; margin: 0; padding: 0;" />
+</div>
+<?php endif;
+        if ($content): ?>
+<div style="position: relative; z-index: 10;">
+    <?php echo $content; ?>
+</div>
+<?php endif;
+        $html = ob_get_clean();
+
+        return apply_filters('custom_cert_additional_page_html', $html, $page, $data);
     }
 
     /**

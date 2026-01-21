@@ -28,6 +28,7 @@ class Custom_Cert_Admin {
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
         add_action('save_post', array($this, 'save_template_meta'), 10, 2);
         add_action('save_post', array($this, 'save_custom_variables_meta'), 10, 2);
+        add_action('save_post', array($this, 'save_additional_pages_meta'), 10, 2);
         add_action('save_post', array($this, 'save_certificate_meta'), 10, 2);
 
         // Add admin columns
@@ -87,6 +88,16 @@ class Custom_Cert_Admin {
             'cert_custom_variables',
             __('Variables Personalizadas', 'custom-certificates'),
             array($this, 'template_custom_variables_metabox'),
+            'bb_cert_template',
+            'normal',
+            'default'
+        );
+
+        // Additional pages
+        add_meta_box(
+            'cert_additional_pages',
+            __('Páginas Adicionales', 'custom-certificates'),
+            array($this, 'additional_pages_metabox'),
             'bb_cert_template',
             'normal',
             'default'
@@ -438,6 +449,235 @@ class Custom_Cert_Admin {
     }
 
     /**
+     * Additional pages metabox for templates
+     */
+    public function additional_pages_metabox($post) {
+        wp_nonce_field('save_additional_pages', 'additional_pages_nonce');
+
+        $additional_pages = json_decode(get_post_meta($post->ID, '_cert_additional_pages', true), true);
+        if (!$additional_pages || !is_array($additional_pages)) {
+            $additional_pages = array();
+        }
+
+        // Ensure wp.media is available
+        wp_enqueue_media();
+        ?>
+        <div id="cert-additional-pages-wrapper">
+            <p class="description">
+                <?php _e('Agrega páginas adicionales al certificado. Cada página puede tener una imagen de fondo y contenido HTML opcional.', 'custom-certificates'); ?>
+            </p>
+
+            <div id="additional-pages-container">
+                <?php if (!empty($additional_pages)): ?>
+                    <?php foreach ($additional_pages as $index => $page): ?>
+                        <div class="additional-page-item" data-index="<?php echo $index; ?>">
+                            <div class="page-header">
+                                <h4>
+                                    <span class="dashicons dashicons-format-image"></span>
+                                    <?php printf(__('Página %d', 'custom-certificates'), $index + 2); ?>
+                                </h4>
+                                <button type="button" class="button remove-page" title="<?php _e('Eliminar página', 'custom-certificates'); ?>">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                            <div class="page-content">
+                                <div class="page-image-section">
+                                    <label><strong><?php _e('Imagen de Fondo:', 'custom-certificates'); ?></strong></label>
+                                    <div class="image-preview-wrapper">
+                                        <?php
+                                        $image_id = isset($page['image_id']) ? intval($page['image_id']) : 0;
+                                        $image_url = $image_id ? wp_get_attachment_image_url($image_id, 'medium') : '';
+                                        ?>
+                                        <div class="image-preview" style="<?php echo $image_url ? '' : 'display:none;'; ?>">
+                                            <img src="<?php echo esc_url($image_url); ?>" alt="">
+                                        </div>
+                                        <input type="hidden" name="additional_pages[<?php echo $index; ?>][image_id]" value="<?php echo esc_attr($image_id); ?>" class="page-image-id">
+                                        <div class="image-buttons">
+                                            <button type="button" class="button select-image"><?php _e('Seleccionar Imagen', 'custom-certificates'); ?></button>
+                                            <button type="button" class="button remove-image" style="<?php echo $image_url ? '' : 'display:none;'; ?>"><?php _e('Quitar', 'custom-certificates'); ?></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="page-content-section">
+                                    <label><strong><?php _e('Contenido HTML (opcional):', 'custom-certificates'); ?></strong></label>
+                                    <p class="description"><?php _e('Puedes usar las mismas variables que en la página principal ({NOMBRE_USUARIO}, etc.)', 'custom-certificates'); ?></p>
+                                    <textarea name="additional_pages[<?php echo $index; ?>][content]" rows="6" class="large-text code"><?php echo esc_textarea(isset($page['content']) ? $page['content'] : ''); ?></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <p style="margin-top: 15px;">
+                <button type="button" class="button button-primary" id="add-additional-page">
+                    <span class="dashicons dashicons-plus-alt" style="vertical-align: middle;"></span>
+                    <?php _e('Agregar Página', 'custom-certificates'); ?>
+                </button>
+            </p>
+        </div>
+
+        <script type="text/template" id="additional-page-template">
+            <div class="additional-page-item" data-index="{{INDEX}}">
+                <div class="page-header">
+                    <h4>
+                        <span class="dashicons dashicons-format-image"></span>
+                        <?php _e('Página', 'custom-certificates'); ?> {{PAGE_NUM}}
+                    </h4>
+                    <button type="button" class="button remove-page" title="<?php _e('Eliminar página', 'custom-certificates'); ?>">
+                        <span class="dashicons dashicons-trash"></span>
+                    </button>
+                </div>
+                <div class="page-content">
+                    <div class="page-image-section">
+                        <label><strong><?php _e('Imagen de Fondo:', 'custom-certificates'); ?></strong></label>
+                        <div class="image-preview-wrapper">
+                            <div class="image-preview" style="display:none;">
+                                <img src="" alt="">
+                            </div>
+                            <input type="hidden" name="additional_pages[{{INDEX}}][image_id]" value="" class="page-image-id">
+                            <div class="image-buttons">
+                                <button type="button" class="button select-image"><?php _e('Seleccionar Imagen', 'custom-certificates'); ?></button>
+                                <button type="button" class="button remove-image" style="display:none;"><?php _e('Quitar', 'custom-certificates'); ?></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-content-section">
+                        <label><strong><?php _e('Contenido HTML (opcional):', 'custom-certificates'); ?></strong></label>
+                        <p class="description"><?php _e('Puedes usar las mismas variables que en la página principal ({NOMBRE_USUARIO}, etc.)', 'custom-certificates'); ?></p>
+                        <textarea name="additional_pages[{{INDEX}}][content]" rows="6" class="large-text code"></textarea>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <script>
+        jQuery(document).ready(function($) {
+            var pageIndex = <?php echo count($additional_pages); ?>;
+
+            // Add new page
+            $('#add-additional-page').on('click', function() {
+                var template = $('#additional-page-template').html();
+                template = template.replace(/\{\{INDEX\}\}/g, pageIndex);
+                template = template.replace(/\{\{PAGE_NUM\}\}/g, pageIndex + 2);
+                $('#additional-pages-container').append(template);
+                pageIndex++;
+                updatePageNumbers();
+            });
+
+            // Remove page
+            $(document).on('click', '.remove-page', function() {
+                $(this).closest('.additional-page-item').remove();
+                updatePageNumbers();
+            });
+
+            // Update page numbers after removal
+            function updatePageNumbers() {
+                $('.additional-page-item').each(function(i) {
+                    $(this).find('.page-header h4').html(
+                        '<span class="dashicons dashicons-format-image"></span> <?php _e('Página', 'custom-certificates'); ?> ' + (i + 2)
+                    );
+                });
+            }
+
+            // Select image using WordPress Media Library
+            $(document).on('click', '.select-image', function(e) {
+                e.preventDefault();
+                var $button = $(this);
+                var $container = $button.closest('.image-preview-wrapper');
+                var $imageInput = $container.find('.page-image-id');
+                var $preview = $container.find('.image-preview');
+                var $removeBtn = $container.find('.remove-image');
+
+                var frame = wp.media({
+                    title: '<?php _e('Seleccionar imagen de fondo', 'custom-certificates'); ?>',
+                    button: { text: '<?php _e('Usar esta imagen', 'custom-certificates'); ?>' },
+                    multiple: false,
+                    library: { type: 'image' }
+                });
+
+                frame.on('select', function() {
+                    var attachment = frame.state().get('selection').first().toJSON();
+                    $imageInput.val(attachment.id);
+                    $preview.find('img').attr('src', attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url);
+                    $preview.show();
+                    $removeBtn.show();
+                });
+
+                frame.open();
+            });
+
+            // Remove image
+            $(document).on('click', '.remove-image', function(e) {
+                e.preventDefault();
+                var $container = $(this).closest('.image-preview-wrapper');
+                $container.find('.page-image-id').val('');
+                $container.find('.image-preview').hide().find('img').attr('src', '');
+                $(this).hide();
+            });
+        });
+        </script>
+
+        <style>
+            #cert-additional-pages-wrapper .additional-page-item {
+                background: #fff;
+                border: 1px solid #ccd0d4;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                overflow: hidden;
+            }
+            #cert-additional-pages-wrapper .page-header {
+                background: #f6f7f7;
+                padding: 10px 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #ccd0d4;
+            }
+            #cert-additional-pages-wrapper .page-header h4 {
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            #cert-additional-pages-wrapper .page-content {
+                padding: 15px;
+            }
+            #cert-additional-pages-wrapper .page-image-section {
+                margin-bottom: 20px;
+            }
+            #cert-additional-pages-wrapper .image-preview-wrapper {
+                margin-top: 10px;
+            }
+            #cert-additional-pages-wrapper .image-preview {
+                max-width: 300px;
+                margin-bottom: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                overflow: hidden;
+            }
+            #cert-additional-pages-wrapper .image-preview img {
+                display: block;
+                width: 100%;
+                height: auto;
+            }
+            #cert-additional-pages-wrapper .image-buttons {
+                display: flex;
+                gap: 10px;
+            }
+            #cert-additional-pages-wrapper .page-content-section label {
+                display: block;
+                margin-bottom: 5px;
+            }
+            #cert-additional-pages-wrapper .page-content-section .description {
+                margin-top: 0;
+                margin-bottom: 10px;
+            }
+        </style>
+        <?php
+    }
+
+    /**
      * Certificate details metabox
      */
     public function certificate_details_metabox($post) {
@@ -647,6 +887,54 @@ class Custom_Cert_Admin {
         } else {
             // If no variables submitted, clear the meta
             delete_post_meta($post_id, '_cert_custom_variables');
+        }
+    }
+
+    /**
+     * Save additional pages meta
+     */
+    public function save_additional_pages_meta($post_id, $post) {
+        // Check if it's the right post type
+        if ($post->post_type !== 'bb_cert_template') {
+            return;
+        }
+
+        // Verify nonce
+        if (!isset($_POST['additional_pages_nonce']) || !wp_verify_nonce($_POST['additional_pages_nonce'], 'save_additional_pages')) {
+            return;
+        }
+
+        // Check autosave
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        // Check permissions
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        // Save additional pages
+        if (isset($_POST['additional_pages']) && is_array($_POST['additional_pages'])) {
+            $additional_pages = array();
+            foreach ($_POST['additional_pages'] as $page) {
+                // Only save if image_id is provided
+                $image_id = isset($page['image_id']) ? intval($page['image_id']) : 0;
+                if ($image_id > 0) {
+                    $additional_pages[] = array(
+                        'image_id' => $image_id,
+                        'content' => isset($page['content']) ? wp_kses_post($page['content']) : ''
+                    );
+                }
+            }
+            if (!empty($additional_pages)) {
+                update_post_meta($post_id, '_cert_additional_pages', json_encode($additional_pages));
+            } else {
+                delete_post_meta($post_id, '_cert_additional_pages');
+            }
+        } else {
+            // If no pages submitted, clear the meta
+            delete_post_meta($post_id, '_cert_additional_pages');
         }
     }
 

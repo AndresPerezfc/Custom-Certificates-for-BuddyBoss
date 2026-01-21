@@ -1,0 +1,1366 @@
+                                                                                
+╭─── Claude Code v2.1.9 ───────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                Welcome back Innova!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ Recent activity         │
+│                        ▘▘ ▝▝                       │ No recent activity      │
+│                                                    │                         │
+│      Opus 4.5 · Claude Pro ·                       │                         │
+│      cetep@unimagdalena.edu.co's Organization      │                         │
+│ ~\Documents\04-CODE\BLOQUE 10\PLUGIN - Customs-ce… │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+                                                                                
+❯ /compact                                                                      
+  ⎿  Compacted (ctrl+o to see full summary)                                     
+  ⎿  Referenced file includes\class-pdf-generator.php                           
+  ⎿  Referenced file includes\class-admin-interface.php                         
+  ⎿  Read public\js\verification.js (210 lines)                                 
+  ⎿  Read docs\DOCUMENTACION_OFICIAL.md (159 lines)                             
+  ⎿  Read custom-certificates.php (230 lines)                                   
+  ⎿  Plan file referenced (~\.claude\plans\rustling-tickling-eclipse.md)        
+                                                                                
+❯ hay un pequeño detalle con la pagina adicional que se está agregando al       
+  certificado y es que no está ocupando el 100% de ancho y alto, la imagen      
+  de fondo tiene exactamente las mismas dimensiones que la imgen de fondo       
+  de la pagina 1. en esta segunda pagina está quedando un muy pequeño           
+  margen en la parte inferior de la pagina y en el lado derecho, no mayor a     
+  5 px, podrías corregir esto? la generación de esta pagina esperamos que       
+  sea igual a la de la pagina principal                                         
+  ⎿  You've hit your limit · resets 1pm (America/Bogota)                        
+     /upgrade to increase your usage limit.                                     
+                                                                                
+❯ continua                                                                      
+                                                                                
+● Voy a revisar cómo se genera la página principal del certificado para replicar
+   exactamente el mismo enfoque en las páginas adicionales.                     
+                                                                                
+● Read(includes\class-pdf-generator.php)                                        
+  ⎿  Read 697 lines                                                             
+                                                                                
+● Veo que el código actual para páginas adicionales ya es similar al de la      
+  página principal. El problema con mPDF es que después de AddPage(), los       
+  estilos basados en porcentajes pueden comportarse diferente. Voy a usar       
+  dimensiones fijas en milímetros (el tamaño exacto de la hoja Letter) para     
+  asegurar que la imagen ocupe todo el espacio.                                 
+                                                                                
+● Update(includes\class-pdf-generator.php)                                      
+  ⎿  Added 27 lines, removed 58 lines                                           
+      364          $background_image = isset($page['image_url']) ? $page[       
+           'image_url'] : '';                                                   
+      365          $content = isset($page['content']) ? $page['content']        
+           : '';                                                                
+      366                                                                       
+      367 +        // Get orientation from template config                      
+      368 +        $orientation = isset($data['template_config']['orienta       
+          +tion']) ? $data['template_config']['orientation'] : 'landscape       
+          +';                                                                   
+      369 +                                                                     
+      370 +        // Letter size exact dimensions in mm                        
+      371 +        // Letter-L (landscape): 279.4mm x 215.9mm                   
+      372 +        // Letter-P (portrait): 215.9mm x 279.4mm                    
+      373 +        if ($orientation === 'portrait') {                           
+      374 +            $page_width = '215.9mm';                                 
+      375 +            $page_height = '279.4mm';                                
+      376 +        } else {                                                     
+      377 +            $page_width = '279.4mm';                                 
+      378 +            $page_height = '215.9mm';                                
+      379 +        }                                                            
+      380 +                                                                     
+      381 +        // Use minimal HTML - mPDF handles this better for add       
+          +itional pages                                                        
+      382          ob_start();                                                  
+      383          ?>                                                           
+      369 -        <!DOCTYPE html>                                              
+      370 -        <html>                                                       
+      371 -        <head>                                                       
+      372 -            <meta charset="UTF-8">                                   
+      373 -            <style>                                                  
+      374 -                @page {                                              
+      375 -                    margin: 0;                                       
+      376 -                }                                                    
+      377 -                body {                                               
+      378 -                    margin: 0;                                       
+      379 -                    padding: 0;                                      
+      380 -                    width: 100%;                                     
+      381 -                    height: 100%;                                    
+      382 -                }                                                    
+      383 -                .certificate-page {                                  
+      384 -                    position: relative;                              
+      385 -                    width: 100%;                                     
+      386 -                    height: 100%;                                    
+      387 -                    margin: 0;                                       
+      388 -                    padding: 0;                                      
+      389 -                }                                                    
+      390 -                <?php if ($background_image): ?>                     
+      391 -                .certificate-background {                            
+      392 -                    position: absolute;                              
+      393 -                    top: 0;                                          
+      394 -                    left: 0;                                         
+      395 -                    width: 100%;                                     
+      396 -                    height: 100%;                                    
+      397 -                    margin: 0;                                       
+      398 -                    padding: 0;                                      
+      399 -                }                                                    
+      400 -                .certificate-background img {                        
+      401 -                    width: 100%;                                     
+      402 -                    height: 100%;                                    
+      403 -                    display: block;                                  
+      404 -                }                                                    
+      405 -                <?php endif; ?>                                      
+      406 -                .certificate-content {                               
+      407 -                    position: relative;                              
+      408 -                    z-index: 10;                                     
+      409 -                }                                                    
+      410 -            </style>                                                 
+      411 -        </head>                                                      
+      412 -        <body>                                                       
+      413 -            <div class="certificate-page">                           
+      414 -                <?php if ($background_image): ?>                     
+      415 -                    <div class="certificate-background">             
+      416 -                        <img src="<?php echo esc_url($backgrou       
+          -nd_image); ?>" alt="Certificate Background" />                       
+      417 -                    </div>                                           
+      418 -                <?php endif; ?>                                      
+      419 -                <?php if ($content): ?>                              
+      420 -                    <div class="certificate-content">                
+      421 -                        <?php echo $content; ?>                      
+      422 -                    </div>                                           
+      423 -                <?php endif; ?>                                      
+      424 -            </div>                                                   
+      425 -        </body>                                                      
+      426 -        </html>                                                      
+      384 +<style>                                                              
+      385 +    @page { margin: 0; }                                             
+      386 +    body { margin: 0; padding: 0; }                                  
+      387 +</style>                                                             
+      388 +<?php if ($background_image): ?>                                     
+      389 +<img src="<?php echo esc_url($background_image); ?>" style="po       
+          +sition: absolute; top: 0; left: 0; width: <?php echo $page_wid       
+          +th; ?>; height: <?php echo $page_height; ?>;" />                     
+      390 +<?php endif; ?>                                                      
+      391 +<?php if ($content): ?>                                              
+      392 +<div style="position: relative; z-index: 10;">                       
+      393 +    <?php echo $content; ?>                                          
+      394 +</div>                                                               
+      395 +<?php endif; ?>                                                      
+      396          <?php                                                        
+      397          $html = ob_get_clean();                                      
+      398                                                                       
+                                                                                
+● He simplificado el HTML para las páginas adicionales y he usado dimensiones   
+  exactas en milímetros para el tamaño de hoja Letter:                          
+  - Landscape: 279.4mm x 215.9mm                                                
+  - Portrait: 215.9mm x 279.4mm                                                 
+                                                                                
+  También eliminé la estructura HTML completa (DOCTYPE, html, head, body) ya que
+   mPDF maneja mejor el contenido simplificado después de AddPage().            
+                                                                                
+  Prueba generar el certificado nuevamente para verificar si ahora la imagen de 
+  fondo de las páginas adicionales ocupa el 100% de la página.                  
+                                                                                
+✻ Brewed for 49s                                                                
+                                                                                
+❯ No lastimosamente no, es muy poco el espacio, pero aun queda cómo un          
+  margen en la parte inferior y el lado derecho                                 
+                                                                                
+● Entiendo, el problema persiste. Voy a intentar un enfoque diferente: aumentar 
+  ligeramente las dimensiones de la imagen para que desborde un poco y cubra    
+  cualquier espacio residual que mPDF pueda estar dejando.                      
+                                                                                
+● Update(includes\class-pdf-generator.php)                                      
+  ⎿  Added 60 lines, removed 27 lines                                           
+      364          $background_image = isset($page['image_url']) ? $page[       
+           'image_url'] : '';                                                   
+      365          $content = isset($page['content']) ? $page['content']        
+           : '';                                                                
+      366                                                                       
+      367 -        // Get orientation from template config                      
+      368 -        $orientation = isset($data['template_config']['orienta       
+          -tion']) ? $data['template_config']['orientation'] : 'landscape       
+          -';                                                                   
+      369 -                                                                     
+      370 -        // Letter size exact dimensions in mm                        
+      371 -        // Letter-L (landscape): 279.4mm x 215.9mm                   
+      372 -        // Letter-P (portrait): 215.9mm x 279.4mm                    
+      373 -        if ($orientation === 'portrait') {                           
+      374 -            $page_width = '215.9mm';                                 
+      375 -            $page_height = '279.4mm';                                
+      376 -        } else {                                                     
+      377 -            $page_width = '279.4mm';                                 
+      378 -            $page_height = '215.9mm';                                
+      379 -        }                                                            
+      380 -                                                                     
+      381 -        // Use minimal HTML - mPDF handles this better for add       
+          -itional pages                                                        
+      367 +        // Use the same structure as the main page template (d       
+          +efault_template)                                                     
+      368 +        // This ensures consistent rendering between main and        
+          +additional pages                                                     
+      369          ob_start();                                                  
+      370          ?>                                                           
+      384 -<style>                                                              
+      385 -    @page { margin: 0; }                                             
+      386 -    body { margin: 0; padding: 0; }                                  
+      387 -</style>                                                             
+      388 -<?php if ($background_image): ?>                                     
+      389 -<img src="<?php echo esc_url($background_image); ?>" style="po       
+          -sition: absolute; top: 0; left: 0; width: <?php echo $page_wid       
+          -th; ?>; height: <?php echo $page_height; ?>;" />                     
+      390 -<?php endif; ?>                                                      
+      391 -<?php if ($content): ?>                                              
+      392 -<div style="position: relative; z-index: 10;">                       
+      393 -    <?php echo $content; ?>                                          
+      394 -</div>                                                               
+      395 -<?php endif; ?>                                                      
+      371 +<!DOCTYPE html>                                                      
+      372 +<html>                                                               
+      373 +<head>                                                               
+      374 +    <meta charset="UTF-8">                                           
+      375 +    <style>                                                          
+      376 +        @page {                                                      
+      377 +            margin: 0;                                               
+      378 +        }                                                            
+      379 +        body {                                                       
+      380 +            margin: 0;                                               
+      381 +            padding: 0;                                              
+      382 +            width: 100%;                                             
+      383 +            height: 100%;                                            
+      384 +        }                                                            
+      385 +        .certificate-page {                                          
+      386 +            position: relative;                                      
+      387 +            width: 100%;                                             
+      388 +            height: 100%;                                            
+      389 +            margin: 0;                                               
+      390 +            padding: 0;                                              
+      391 +        }                                                            
+      392 +        <?php if ($background_image): ?>                             
+      393 +        .certificate-background {                                    
+      394 +            position: absolute;                                      
+      395 +            top: 0;                                                  
+      396 +            left: 0;                                                 
+      397 +            width: 100%;                                             
+      398 +            height: 100%;                                            
+      399 +            margin: 0;                                               
+      400 +            padding: 0;                                              
+      401 +        }                                                            
+      402 +        .certificate-background img {                                
+      403 +            width: 100%;                                             
+      404 +            height: 100%;                                            
+      405 +            display: block;                                          
+      406 +        }                                                            
+      407 +        <?php endif; ?>                                              
+      408 +        .certificate-content {                                       
+      409 +            position: relative;                                      
+      410 +            z-index: 10;                                             
+      411 +        }                                                            
+      412 +    </style>                                                         
+      413 +</head>                                                              
+      414 +<body>                                                               
+      415 +    <div class="certificate-page">                                   
+      416 +        <?php if ($background_image): ?>                             
+      417 +            <div class="certificate-background">                     
+      418 +                <img src="<?php echo esc_url($background_image       
+          +); ?>" alt="Certificate Background" />                               
+      419 +            </div>                                                   
+      420 +        <?php endif; ?>                                              
+      421 +        <?php if ($content): ?>                                      
+      422 +            <div class="certificate-content">                        
+      423 +                <?php echo $content; ?>                              
+      424 +            </div>                                                   
+      425 +        <?php endif; ?>                                              
+      426 +    </div>                                                           
+      427 +</body>                                                              
+      428 +</html>                                                              
+      429          <?php                                                        
+      430          $html = ob_get_clean();                                      
+      431                                                                       
+                                                                                
+● Espera, volví al código anterior que no funcionaba. Voy a intentar un enfoque 
+  diferente usando la propiedad CSS background-image de mPDF en lugar de una    
+  etiqueta <img>, ya que mPDF maneja mejor los fondos de esta manera.           
+                                                                                
+● Update(includes\class-pdf-generator.php)                                      
+  ⎿  Added 26 lines, removed 62 lines                                           
+      364          $background_image = isset($page['image_url']) ? $page[       
+           'image_url'] : '';                                                   
+      365          $content = isset($page['content']) ? $page['content']        
+           : '';                                                                
+      366                                                                       
+      367 -        // Use the same structure as the main page template (d       
+          -efault_template)                                                     
+      368 -        // This ensures consistent rendering between main and        
+          -additional pages                                                     
+      369 -        ob_start();                                                  
+      370 -        ?>                                                           
+      371 -<!DOCTYPE html>                                                      
+      372 -<html>                                                               
+      373 -<head>                                                               
+      374 -    <meta charset="UTF-8">                                           
+      375 -    <style>                                                          
+      376 -        @page {                                                      
+      377 -            margin: 0;                                               
+      367 +        // Get orientation from template config                      
+      368 +        $orientation = isset($data['template_config']['orienta       
+          +tion']) ? $data['template_config']['orientation'] : 'landscape       
+          +';                                                                   
+      369 +                                                                     
+      370 +        // Letter size dimensions in mm (add small overflow to       
+          + ensure full coverage)                                               
+      371 +        // Letter-L (landscape): 279.4mm x 215.9mm                   
+      372 +        // Letter-P (portrait): 215.9mm x 279.4mm                    
+      373 +        if ($orientation === 'portrait') {                           
+      374 +            $page_width = '216mm';                                   
+      375 +            $page_height = '280mm';                                  
+      376 +        } else {                                                     
+      377 +            $page_width = '280mm';                                   
+      378 +            $page_height = '216mm';                                  
+      379          }                                                            
+      379 -        body {                                                       
+      380 -            margin: 0;                                               
+      381 -            padding: 0;                                              
+      382 -            width: 100%;                                             
+      383 -            height: 100%;                                            
+      384 -        }                                                            
+      385 -        .certificate-page {                                          
+      386 -            position: relative;                                      
+      387 -            width: 100%;                                             
+      388 -            height: 100%;                                            
+      389 -            margin: 0;                                               
+      390 -            padding: 0;                                              
+      391 -        }                                                            
+      392 -        <?php if ($background_image): ?>                             
+      393 -        .certificate-background {                                    
+      394 -            position: absolute;                                      
+      395 -            top: 0;                                                  
+      396 -            left: 0;                                                 
+      397 -            width: 100%;                                             
+      398 -            height: 100%;                                            
+      399 -            margin: 0;                                               
+      400 -            padding: 0;                                              
+      401 -        }                                                            
+      402 -        .certificate-background img {                                
+      403 -            width: 100%;                                             
+      404 -            height: 100%;                                            
+      405 -            display: block;                                          
+      406 -        }                                                            
+      407 -        <?php endif; ?>                                              
+      408 -        .certificate-content {                                       
+      409 -            position: relative;                                      
+      410 -            z-index: 10;                                             
+      411 -        }                                                            
+      412 -    </style>                                                         
+      413 -</head>                                                              
+      414 -<body>                                                               
+      415 -    <div class="certificate-page">                                   
+      416 -        <?php if ($background_image): ?>                             
+      417 -            <div class="certificate-background">                     
+      418 -                <img src="<?php echo esc_url($background_image       
+          -); ?>" alt="Certificate Background" />                               
+      419 -            </div>                                                   
+      420 -        <?php endif; ?>                                              
+      421 -        <?php if ($content): ?>                                      
+      422 -            <div class="certificate-content">                        
+      423 -                <?php echo $content; ?>                              
+      424 -            </div>                                                   
+      425 -        <?php endif; ?>                                              
+      426 -    </div>                                                           
+      427 -</body>                                                              
+      428 -</html>                                                              
+      429 -        <?php                                                        
+      380 +                                                                     
+      381 +        // For additional pages, use a simpler approach withou       
+          +t full HTML document                                                 
+      382 +        // This works better with mPDF's AddPage() method            
+      383 +        ob_start();                                                  
+      384 +        if ($background_image): ?>                                   
+      385 +<div style="position: absolute; top: 0; left: 0; right: 0; bot       
+          +tom: 0; margin: 0; padding: 0;">                                     
+      386 +    <img src="<?php echo esc_url($background_image); ?>" style       
+          +="width: <?php echo $page_width; ?>; height: <?php echo $page_       
+          +height; ?>; display: block; margin: 0; padding: 0;" />               
+      387 +</div>                                                               
+      388 +<?php endif;                                                         
+      389 +        if ($content): ?>                                            
+      390 +<div style="position: relative; z-index: 10;">                       
+      391 +    <?php echo $content; ?>                                          
+      392 +</div>                                                               
+      393 +<?php endif;                                                         
+      394          $html = ob_get_clean();                                      
+      395                                                                       
+      396          return apply_filters('custom_cert_additional_page_html       
+           ', $html, $page, $data);                                             
+                                                                                
+● He hecho dos cambios importantes:                                             
+                                                                                
+  1. Aumenté ligeramente las dimensiones (280mm x 216mm en lugar de 279.4mm x   
+  215.9mm) para que la imagen desborde un poco y cubra cualquier espacio        
+  2. Eliminé la estructura HTML completa ya que después de AddPage() mPDF maneja
+   mejor el contenido simple                                                    
+                                                                                
+  Prueba generar el certificado nuevamente.                                     
+                                                                                
+✻ Churned for 44s                                                               
+                                                                                
+❯ Perfecto ahora si se ve córrectamente, podrías documentar los ultimos         
+  cambios aplicados en el archivo de DOCUMENTACION_OFICIAL.md                   
+                                                                                
+● Read(docs\DOCUMENTACION_OFICIAL.md)                                           
+  ⎿  Read 159 lines                                                             
+                                                                                
+● Voy a actualizar la documentación con la nueva funcionalidad de páginas       
+  adicionales.                                                                  
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 4 lines, removed 1 line                                              
+       7                                                                        
+       8  *   **Gestión de Plantillas Visuales**: Creación de plantillas        
+          de certificados utilizando el editor clásico de WordPress, con        
+          soporte para imágenes de fondo destacadas.                            
+       9  *   **Generación Dinámica de PDF**: Utiliza la librería **mPDF*       
+          * para generar documentos PDF de alta calidad al vuelo.               
+      10 +*   **Certificados Multi-Página**: Soporte para agregar páginas       
+         + adicionales a los certificados, cada una con su propia imagen        
+         +de fondo.                                                             
+      11  *   **Integración Nativa con BuddyBoss**: Añade una pestaña "Mi       
+          s Certificados" en el perfil de cada miembro, manteniendo la es       
+          tética y funcionalidad de la red social.                              
+      11 -*   **Configuración Personalizable**: Control total sobre la or       
+         -ientación (Apaisado/Vertical), colores de texto, tamaño de fuen       
+         -te y fondos por plantilla.                                            
+      12 +*   **Configuración Personalizable**: Control total sobre la or       
+         +ientación (Apaisado/Vertical), colores de texto, tamaño de fuen       
+         +te, tipografía y fondos por plantilla.                                
+      13  *   **Sistema de Verificación**: Cada certificado emitido inclu       
+          ye un **código único de 10 caracteres** para garantizar su aute       
+          nticidad.                                                             
+      14 +*   **Verificación Pública**: Página pública con shortcode para       
+         + que terceros verifiquen la autenticidad de certificados.             
+      15  *   **Asignación Masiva**: Herramienta administrativa para asig       
+          nar certificados a usuarios individuales o múltiples usuarios s       
+          imultáneamente mediante búsqueda AJAX.                                
+      16 +*   **Edición de Variables Post-Asignación**: Posibilidad de ed       
+         +itar los valores de variables personalizadas en certificados ya       
+         + asignados.                                                           
+      17  *   **Gestión de Dependencias**: Sistema integrado de comprobac       
+          ión e instalación de librerías necesarias (mPDF).                     
+      18                                                                        
+      19  ---                                                                   
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 4 lines, removed 1 line                                              
+      51  Desde el menú **Certificados > Añadir Nueva**:                        
+      52  1.  **Título**: Nombre interno de la plantilla (ej. "Certificad       
+          o de Participación 2024").                                            
+      53  2.  **Contenido**: Diseño del cuerpo del certificado. Se pueden       
+           usar variables dinámicas.                                            
+      54 -3.  **Imagen Destacada**: Se usa como **fondo** del certificado       
+         - (se recomienda formato A4/Carta en alta resolución).                 
+      54 +3.  **Imagen Destacada**: Se usa como **fondo** de la primera p       
+         +ágina del certificado (se recomienda formato Carta/Letter en al       
+         +ta resolución).                                                       
+      55  4.  **Configuración del Certificado**:                                
+      56      *   *Color de Texto*: Hexadecimal.                                
+      57      *   *Tamaño de Fuente*: Base en píxeles.                          
+      58      *   *Orientación*: Horizontal (Landscape) o Vertical (Portr       
+          ait).                                                                 
+      59 +    *   *Tipografía*: Selección de fuentes Google Fonts (Montse       
+         +rrat, Open Sans, Roboto, Lato).                                       
+      60 +5.  **Variables Personalizadas** (opcional): Definir variables        
+         +adicionales específicas para esta plantilla que se completarán        
+         +al momento de asignar.                                                
+      61 +6.  **Páginas Adicionales** (opcional): Agregar páginas extra a       
+         +l certificado con sus propias imágenes de fondo.                      
+      62                                                                        
+      63  ### 2. Asignación de Certificados                                     
+      64  Desde **Certificados > Asignar Certificados**:                        
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 33 lines                                                             
+      117  *   **Hook de Generación**: `template_redirect`. Detecta el pa       
+           rámetro `?download_certificate=1`.                                   
+      118  *   **Seguridad**: Verifica Nonces y permisos (solo el dueño o       
+            un administrador pueden descargar).                                 
+      119  *   **Renderizado**: Genera HTML intermedio y lo convierte a P       
+           DF. Si no hay plantilla HTML personalizada en el tema, usa una       
+            estructura por defecto centrada en la imagen de fondo.              
+      120 +*   **Formato de Página**: Tamaño Carta (Letter) - 279.4mm x 2       
+          +15.9mm (landscape) o 215.9mm x 279.4mm (portrait).                   
+      121                                                                       
+      122 +### Páginas Adicionales                                              
+      123 +                                                                     
+      124 +El plugin permite agregar múltiples páginas a un certificado.        
+          +Cada página adicional puede tener su propia imagen de fondo.         
+      125 +                                                                     
+      126 +#### Configuración                                                   
+      127 +Desde el metabox **"Páginas Adicionales"** en la edición de pl       
+          +antilla:                                                             
+      128 +1.  Clic en **"Agregar Página"** para crear una nueva página.        
+      129 +2.  Seleccionar una imagen de fondo desde la **Biblioteca de M       
+          +edios** de WordPress.                                                
+      130 +3.  Opcionalmente, agregar contenido HTML/texto para la página       
+          +.                                                                    
+      131 +4.  Repetir para agregar más páginas según sea necesario.            
+      132 +5.  Las páginas se pueden eliminar individualmente con el botó       
+          +n "Eliminar".                                                        
+      133 +                                                                     
+      134 +#### Características Técnicas                                        
+      135 +*   **Almacenamiento**: Las páginas adicionales se guardan en        
+          +el meta `_cert_additional_pages` como JSON.                          
+      136 +*   **Estructura de datos**:                                         
+      137 +    ```json                                                          
+      138 +    [                                                                
+      139 +      {                                                              
+      140 +        "image_id": 123,                                             
+      141 +        "content": "<p>Contenido opcional</p>"                       
+      142 +      }                                                              
+      143 +    ]                                                                
+      144 +    ```                                                              
+      145 +*   **Variables**: El contenido de las páginas adicionales tam       
+          +bién soporta todas las variables de plantilla ({NOMBRE_USUARIO       
+          +}, {FECHA_EMISION}, variables personalizadas, etc.).                 
+      146 +*   **Renderizado**: Cada página adicional se genera con `AddP       
+          +age()` de mPDF, manteniendo la misma orientación que la página       
+          + principal.                                                          
+      147 +*   **Imagen de fondo**: Las imágenes se escalan automáticamen       
+          +te para cubrir el 100% del área de la página.                        
+      148 +                                                                     
+      149 +#### Recomendaciones                                                 
+      150 +*   Usar imágenes con las mismas dimensiones que la página pri       
+          +ncipal para mantener consistencia visual.                            
+      151 +*   Las imágenes deben tener resolución adecuada (mínimo 150 D       
+          +PI para impresión).                                                  
+      152 +*   Formato recomendado: PNG o JPG de alta calidad.                  
+      153 +                                                                     
+      154  ### Integración BuddyBoss                                            
+      155  *   Utiliza la API `bp_core_new_nav_item` para inyectar la nav       
+           egación.                                                             
+      156  *   Slug del componente: `certificados-innova`.                      
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 4 lines                                                              
+      35  │   ├── class-buddyboss-integration.php # Integración con perfi       
+          les de BuddyBoss                                                      
+      36  │   ├── class-certificate-assignment.php # Lógica de asignación       
+           y verificación                                                       
+      37  │   ├── class-certificate-post-type.php # Registro de CPTs (Pla       
+          ntillas y Asignaciones)                                               
+      38 +│   ├── class-certificate-verification.php # Sistema de verific       
+         +ación pública                                                         
+      39  │   ├── class-dependency-installer.php  # Gestión de Composer/m       
+          PDF                                                                   
+      40  │   ├── class-pdf-generator.php         # Motor de generación d       
+          e PDFs                                                                
+      41  │   └── functions.php                   # Funciones helpers glo       
+          bales                                                                 
+      42 +├── public/                 # Recursos públicos del frontend          
+      43 +│   ├── css/verification.css            # Estilos del formulari       
+         +o de verificación                                                     
+      44 +│   └── js/verification.js              # JavaScript para verif       
+         +icación AJAX                                                          
+      45  ├── public/                 # Vistas públicas (Templates de per       
+          fil frontend)                                                         
+      46  ├── vendor/                 # Librerías externas (Composer - mP       
+          DF)                                                                   
+      47  └── custom-certificates.php # Archivo principal (Bootstrap)           
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 2 lines, removed 2 lines                                             
+      41  │   └── functions.php                   # Funciones helpers glo       
+          bales                                                                 
+      42  ├── public/                 # Recursos públicos del frontend          
+      43  │   ├── css/verification.css            # Estilos del formulari       
+          o de verificación                                                     
+      44 -│   └── js/verification.js              # JavaScript para verif       
+         -icación AJAX                                                          
+      45 -├── public/                 # Vistas públicas (Templates de per       
+         -fil frontend)                                                         
+      44 +│   ├── js/verification.js              # JavaScript para verif       
+         +icación AJAX                                                          
+      45 +│   └── templates/                      # Plantillas de perfil        
+         +frontend                                                              
+      46  ├── vendor/                 # Librerías externas (Composer - mP       
+          DF)                                                                   
+      47  └── custom-certificates.php # Archivo principal (Bootstrap)           
+      48  ```                                                                   
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 11 lines                                                             
+      188  3. Publicar la página                                                
+      189  4. Compartir la URL de la página para que terceros puedan veri       
+           ficar certificados                                                   
+      190                                                                       
+      191 +#### Verificación Automática por URL                                 
+      192 +El sistema soporta verificación automática mediante parámetros       
+          + en la URL. Al acceder a la página de verificación con uno de        
+          +estos parámetros, el código se auto-completa y se verifica aut       
+          +omáticamente:                                                        
+      193 +                                                                     
+      194 +```                                                                  
+      195 +https://tusitio.com/verificar-certificado/?certificate_id=ABC1       
+          +23XYZ0                                                               
+      196 +https://tusitio.com/verificar-certificado/?code=ABC123XYZ0           
+      197 +https://tusitio.com/verificar-certificado/?codigo=ABC123XYZ0         
+      198 +```                                                                  
+      199 +                                                                     
+      200 +Esto permite incluir enlaces de verificación directamente en l       
+          +os certificados PDF o compartirlos por correo electrónico.           
+      201 +                                                                     
+      202  #### Resultado de la Verificación                                    
+      203  - **Certificado válido**: Muestra nombre del titular, nombre d       
+           el certificado, fecha de emisión y código                            
+      204  - **Certificado no encontrado**: Mensaje indicando que el códi       
+           go no corresponde a ningún certificado                               
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 10 lines, removed 3 lines                                            
+      67  ### 2. Asignación de Certificados                                     
+      68  Desde **Certificados > Asignar Certificados**:                        
+      69  1.  Seleccionar la plantilla deseada.                                 
+      70 -2.  Buscar usuarios (búsqueda predictiva por nombre o email).         
+      71 -3.  Confirmar la asignación.                                          
+      72 -   *   *Internamente se genera un registro `bb_cert_assigned` c       
+         -on un código único y fecha de emisión.*                               
+      70 +2.  Si la plantilla tiene **variables personalizadas**, aparece       
+         +rán campos para completar sus valores.                                
+      71 +3.  Buscar usuarios (búsqueda predictiva por nombre o email).         
+      72 +4.  Confirmar la asignación.                                          
+      73 +    *   *Internamente se genera un registro `bb_cert_assigned`        
+         +con un código único y fecha de emisión.*                              
+      74                                                                        
+      75 +#### Edición de Certificados Asignados                                
+      76 +En la sección **"Certificados Asignados"** (parte inferior de l       
+         +a página de asignación), es posible:                                  
+      77 +*   Ver todos los certificados asignados con sus detalles.            
+      78 +*   **Editar variables personalizadas**: Si un certificado tien       
+         +e variables personalizadas, aparece un botón "Editar" que permi       
+         +te modificar los valores sin necesidad de eliminar y reasignar        
+         +el certificado.                                                       
+      79 +*   Eliminar certificados asignados.                                  
+      80 +                                                                      
+      81  ### 3. Vista del Usuario                                              
+      82  1.  El usuario accede a su perfil en BuddyBoss.                       
+      83  2.  Navega a la pestaña **Mis Certificados**.                         
+                                                                                
+● La documentación ha sido actualizada. Veamos el resultado final.              
+                                                                                
+● Read(docs\DOCUMENTACION_OFICIAL.md)                                           
+  ⎿  Read 220 lines                                                             
+                                                                                
+● La documentación ha sido actualizada con todas las funcionalidades recientes. 
+  Estos son los cambios realizados:                                             
+                                                                                
+  Características Principales (líneas 8-17):                                    
+  - Agregado: Certificados Multi-Página                                         
+  - Agregado: Verificación Pública                                              
+  - Agregado: Edición de Variables Post-Asignación                              
+  - Actualizado: Configuración incluye tipografía                               
+                                                                                
+  Estructura del Proyecto (líneas 33-45):                                       
+  - Agregado: class-certificate-verification.php                                
+  - Agregado: Archivos públicos (css/verification.css, js/verification.js)      
+                                                                                
+  Flujo de Trabajo - Creación de Plantilla (líneas 54-65):                      
+  - Agregado: Tipografía Google Fonts                                           
+  - Agregado: Variables Personalizadas                                          
+  - Agregado: Páginas Adicionales                                               
+                                                                                
+  Flujo de Trabajo - Asignación (líneas 67-79):                                 
+  - Agregado: Sección de edición de certificados asignados                      
+                                                                                
+  Detalles Técnicos (líneas 126-163):                                           
+  - Nueva sección: Páginas Adicionales con configuración, características       
+  técnicas y recomendaciones                                                    
+  - Agregado: Formato de página (Letter)                                        
+                                                                                
+  Verificación Pública (líneas 198-207):                                        
+  - Nueva sección: Verificación Automática por URL con ejemplos de parámetros   
+  soportados                                                                    
+                                                                                
+✻ Baked for 1m 40s                                                              
+                                                                                
+╭─── Claude Code v2.1.9 ───────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                Welcome back Innova!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                                                    │                         │
+│                      ▐▛███▜▌                       │ ─────────────────────── │
+│                     ▝▜█████▛▘                      │ Recent activity         │
+│                       ▘▘ ▝▝                        │ No recent activity      │
+│      Opus 4.5 · Claude Pro ·                       │                         │
+│      cetep@unimagdalena.edu.co's Organization      │                         │
+│      ~\Documents\04-CODE\BLOQUE 10\PLUGIN -        │                         │
+│      Customs-ce…                                   │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+                                                                                
+❯ /compact                                                                      
+  ⎿  Compacted (ctrl+o to see full summary)                                     
+  ⎿  Referenced file includes\class-pdf-generator.php                           
+  ⎿  Referenced file includes\class-admin-interface.php                         
+  ⎿  Read public\js\verification.js (210 lines)                                 
+  ⎿  Read docs\DOCUMENTACION_OFICIAL.md (159 lines)                             
+  ⎿  Read custom-certificates.php (230 lines)                                   
+  ⎿  Plan file referenced (~\.claude\plans\rustling-tickling-eclipse.md)        
+                                                                                
+❯ hay un pequeño detalle con la pagina adicional que se está agregando al       
+  certificado y es que no está ocupando el 100% de ancho y alto, la imagen      
+  de fondo tiene exactamente las mismas dimensiones que la imgen de fondo       
+  de la pagina 1. en esta segunda pagina está quedando un muy pequeño           
+  margen en la parte inferior de la pagina y en el lado derecho, no mayor a     
+  5 px, podrías corregir esto? la generación de esta pagina esperamos que       
+  sea igual a la de la pagina principal                                         
+  ⎿  You've hit your limit · resets 1pm (America/Bogota)                        
+     /upgrade to increase your usage limit.                                     
+                                                                                
+❯ continua                                                                      
+                                                                                
+● Voy a revisar cómo se genera la página principal del certificado para replicar
+   exactamente el mismo enfoque en las páginas adicionales.                     
+                                                                                
+● Read(includes\class-pdf-generator.php)                                        
+  ⎿  Read 697 lines                                                             
+                                                                                
+● Veo que el código actual para páginas adicionales ya es similar al de la      
+  página principal. El problema con mPDF es que después de AddPage(), los       
+  estilos basados en porcentajes pueden comportarse diferente. Voy a usar       
+  dimensiones fijas en milímetros (el tamaño exacto de la hoja Letter) para     
+  asegurar que la imagen ocupe todo el espacio.                                 
+                                                                                
+● Update(includes\class-pdf-generator.php)                                      
+  ⎿  Added 27 lines, removed 58 lines                                           
+      364          $background_image = isset($page['image_url']) ? $page[       
+           'image_url'] : '';                                                   
+      365          $content = isset($page['content']) ? $page['content']        
+           : '';                                                                
+      366                                                                       
+      367 +        // Get orientation from template config                      
+      368 +        $orientation = isset($data['template_config']['orienta       
+          +tion']) ? $data['template_config']['orientation'] : 'landscape       
+          +';                                                                   
+      369 +                                                                     
+      370 +        // Letter size exact dimensions in mm                        
+      371 +        // Letter-L (landscape): 279.4mm x 215.9mm                   
+      372 +        // Letter-P (portrait): 215.9mm x 279.4mm                    
+      373 +        if ($orientation === 'portrait') {                           
+      374 +            $page_width = '215.9mm';                                 
+      375 +            $page_height = '279.4mm';                                
+      376 +        } else {                                                     
+      377 +            $page_width = '279.4mm';                                 
+      378 +            $page_height = '215.9mm';                                
+      379 +        }                                                            
+      380 +                                                                     
+      381 +        // Use minimal HTML - mPDF handles this better for add       
+          +itional pages                                                        
+      382          ob_start();                                                  
+      383          ?>                                                           
+      369 -        <!DOCTYPE html>                                              
+      370 -        <html>                                                       
+      371 -        <head>                                                       
+      372 -            <meta charset="UTF-8">                                   
+      373 -            <style>                                                  
+      374 -                @page {                                              
+      375 -                    margin: 0;                                       
+      376 -                }                                                    
+      377 -                body {                                               
+      378 -                    margin: 0;                                       
+      379 -                    padding: 0;                                      
+      380 -                    width: 100%;                                     
+      381 -                    height: 100%;                                    
+      382 -                }                                                    
+      383 -                .certificate-page {                                  
+      384 -                    position: relative;                              
+      385 -                    width: 100%;                                     
+      386 -                    height: 100%;                                    
+      387 -                    margin: 0;                                       
+      388 -                    padding: 0;                                      
+      389 -                }                                                    
+      390 -                <?php if ($background_image): ?>                     
+      391 -                .certificate-background {                            
+      392 -                    position: absolute;                              
+      393 -                    top: 0;                                          
+      394 -                    left: 0;                                         
+      395 -                    width: 100%;                                     
+      396 -                    height: 100%;                                    
+      397 -                    margin: 0;                                       
+      398 -                    padding: 0;                                      
+      399 -                }                                                    
+      400 -                .certificate-background img {                        
+      401 -                    width: 100%;                                     
+      402 -                    height: 100%;                                    
+      403 -                    display: block;                                  
+      404 -                }                                                    
+      405 -                <?php endif; ?>                                      
+      406 -                .certificate-content {                               
+      407 -                    position: relative;                              
+      408 -                    z-index: 10;                                     
+      409 -                }                                                    
+      410 -            </style>                                                 
+      411 -        </head>                                                      
+      412 -        <body>                                                       
+      413 -            <div class="certificate-page">                           
+      414 -                <?php if ($background_image): ?>                     
+      415 -                    <div class="certificate-background">             
+      416 -                        <img src="<?php echo esc_url($backgrou       
+          -nd_image); ?>" alt="Certificate Background" />                       
+      417 -                    </div>                                           
+      418 -                <?php endif; ?>                                      
+      419 -                <?php if ($content): ?>                              
+      420 -                    <div class="certificate-content">                
+      421 -                        <?php echo $content; ?>                      
+      422 -                    </div>                                           
+      423 -                <?php endif; ?>                                      
+      424 -            </div>                                                   
+      425 -        </body>                                                      
+      426 -        </html>                                                      
+      384 +<style>                                                              
+      385 +    @page { margin: 0; }                                             
+      386 +    body { margin: 0; padding: 0; }                                  
+      387 +</style>                                                             
+      388 +<?php if ($background_image): ?>                                     
+      389 +<img src="<?php echo esc_url($background_image); ?>" style="po       
+          +sition: absolute; top: 0; left: 0; width: <?php echo $page_wid       
+          +th; ?>; height: <?php echo $page_height; ?>;" />                     
+      390 +<?php endif; ?>                                                      
+      391 +<?php if ($content): ?>                                              
+      392 +<div style="position: relative; z-index: 10;">                       
+      393 +    <?php echo $content; ?>                                          
+      394 +</div>                                                               
+      395 +<?php endif; ?>                                                      
+      396          <?php                                                        
+      397          $html = ob_get_clean();                                      
+      398                                                                       
+                                                                                
+● He simplificado el HTML para las páginas adicionales y he usado dimensiones   
+  exactas en milímetros para el tamaño de hoja Letter:                          
+  - Landscape: 279.4mm x 215.9mm                                                
+  - Portrait: 215.9mm x 279.4mm                                                 
+                                                                                
+  También eliminé la estructura HTML completa (DOCTYPE, html, head, body) ya que
+   mPDF maneja mejor el contenido simplificado después de AddPage().            
+                                                                                
+  Prueba generar el certificado nuevamente para verificar si ahora la imagen de 
+  fondo de las páginas adicionales ocupa el 100% de la página.                  
+                                                                                
+✻ Brewed for 49s                                                                
+                                                                                
+❯ No lastimosamente no, es muy poco el espacio, pero aun queda cómo un          
+  margen en la parte inferior y el lado derecho                                 
+                                                                                
+● Entiendo, el problema persiste. Voy a intentar un enfoque diferente: aumentar 
+  ligeramente las dimensiones de la imagen para que desborde un poco y cubra    
+  cualquier espacio residual que mPDF pueda estar dejando.                      
+                                                                                
+● Update(includes\class-pdf-generator.php)                                      
+  ⎿  Added 60 lines, removed 27 lines                                           
+      364          $background_image = isset($page['image_url']) ? $page[       
+           'image_url'] : '';                                                   
+      365          $content = isset($page['content']) ? $page['content']        
+           : '';                                                                
+      366                                                                       
+      367 -        // Get orientation from template config                      
+      368 -        $orientation = isset($data['template_config']['orienta       
+          -tion']) ? $data['template_config']['orientation'] : 'landscape       
+          -';                                                                   
+      369 -                                                                     
+      370 -        // Letter size exact dimensions in mm                        
+      371 -        // Letter-L (landscape): 279.4mm x 215.9mm                   
+      372 -        // Letter-P (portrait): 215.9mm x 279.4mm                    
+      373 -        if ($orientation === 'portrait') {                           
+      374 -            $page_width = '215.9mm';                                 
+      375 -            $page_height = '279.4mm';                                
+      376 -        } else {                                                     
+      377 -            $page_width = '279.4mm';                                 
+      378 -            $page_height = '215.9mm';                                
+      379 -        }                                                            
+      380 -                                                                     
+      381 -        // Use minimal HTML - mPDF handles this better for add       
+          -itional pages                                                        
+      367 +        // Use the same structure as the main page template (d       
+          +efault_template)                                                     
+      368 +        // This ensures consistent rendering between main and        
+          +additional pages                                                     
+      369          ob_start();                                                  
+      370          ?>                                                           
+      384 -<style>                                                              
+      385 -    @page { margin: 0; }                                             
+      386 -    body { margin: 0; padding: 0; }                                  
+      387 -</style>                                                             
+      388 -<?php if ($background_image): ?>                                     
+      389 -<img src="<?php echo esc_url($background_image); ?>" style="po       
+          -sition: absolute; top: 0; left: 0; width: <?php echo $page_wid       
+          -th; ?>; height: <?php echo $page_height; ?>;" />                     
+      390 -<?php endif; ?>                                                      
+      391 -<?php if ($content): ?>                                              
+      392 -<div style="position: relative; z-index: 10;">                       
+      393 -    <?php echo $content; ?>                                          
+      394 -</div>                                                               
+      395 -<?php endif; ?>                                                      
+      371 +<!DOCTYPE html>                                                      
+      372 +<html>                                                               
+      373 +<head>                                                               
+      374 +    <meta charset="UTF-8">                                           
+      375 +    <style>                                                          
+      376 +        @page {                                                      
+      377 +            margin: 0;                                               
+      378 +        }                                                            
+      379 +        body {                                                       
+      380 +            margin: 0;                                               
+      381 +            padding: 0;                                              
+      382 +            width: 100%;                                             
+      383 +            height: 100%;                                            
+      384 +        }                                                            
+      385 +        .certificate-page {                                          
+      386 +            position: relative;                                      
+      387 +            width: 100%;                                             
+      388 +            height: 100%;                                            
+      389 +            margin: 0;                                               
+      390 +            padding: 0;                                              
+      391 +        }                                                            
+      392 +        <?php if ($background_image): ?>                             
+      393 +        .certificate-background {                                    
+      394 +            position: absolute;                                      
+      395 +            top: 0;                                                  
+      396 +            left: 0;                                                 
+      397 +            width: 100%;                                             
+      398 +            height: 100%;                                            
+      399 +            margin: 0;                                               
+      400 +            padding: 0;                                              
+      401 +        }                                                            
+      402 +        .certificate-background img {                                
+      403 +            width: 100%;                                             
+      404 +            height: 100%;                                            
+      405 +            display: block;                                          
+      406 +        }                                                            
+      407 +        <?php endif; ?>                                              
+      408 +        .certificate-content {                                       
+      409 +            position: relative;                                      
+      410 +            z-index: 10;                                             
+      411 +        }                                                            
+      412 +    </style>                                                         
+      413 +</head>                                                              
+      414 +<body>                                                               
+      415 +    <div class="certificate-page">                                   
+      416 +        <?php if ($background_image): ?>                             
+      417 +            <div class="certificate-background">                     
+      418 +                <img src="<?php echo esc_url($background_image       
+          +); ?>" alt="Certificate Background" />                               
+      419 +            </div>                                                   
+      420 +        <?php endif; ?>                                              
+      421 +        <?php if ($content): ?>                                      
+      422 +            <div class="certificate-content">                        
+      423 +                <?php echo $content; ?>                              
+      424 +            </div>                                                   
+      425 +        <?php endif; ?>                                              
+      426 +    </div>                                                           
+      427 +</body>                                                              
+      428 +</html>                                                              
+      429          <?php                                                        
+      430          $html = ob_get_clean();                                      
+      431                                                                       
+                                                                                
+● Espera, volví al código anterior que no funcionaba. Voy a intentar un enfoque 
+  diferente usando la propiedad CSS background-image de mPDF en lugar de una    
+  etiqueta <img>, ya que mPDF maneja mejor los fondos de esta manera.           
+                                                                                
+● Update(includes\class-pdf-generator.php)                                      
+  ⎿  Added 26 lines, removed 62 lines                                           
+      364          $background_image = isset($page['image_url']) ? $page[       
+           'image_url'] : '';                                                   
+      365          $content = isset($page['content']) ? $page['content']        
+           : '';                                                                
+      366                                                                       
+      367 -        // Use the same structure as the main page template (d       
+          -efault_template)                                                     
+      368 -        // This ensures consistent rendering between main and        
+          -additional pages                                                     
+      369 -        ob_start();                                                  
+      370 -        ?>                                                           
+      371 -<!DOCTYPE html>                                                      
+      372 -<html>                                                               
+      373 -<head>                                                               
+      374 -    <meta charset="UTF-8">                                           
+      375 -    <style>                                                          
+      376 -        @page {                                                      
+      377 -            margin: 0;                                               
+      367 +        // Get orientation from template config                      
+      368 +        $orientation = isset($data['template_config']['orienta       
+          +tion']) ? $data['template_config']['orientation'] : 'landscape       
+          +';                                                                   
+      369 +                                                                     
+      370 +        // Letter size dimensions in mm (add small overflow to       
+          + ensure full coverage)                                               
+      371 +        // Letter-L (landscape): 279.4mm x 215.9mm                   
+      372 +        // Letter-P (portrait): 215.9mm x 279.4mm                    
+      373 +        if ($orientation === 'portrait') {                           
+      374 +            $page_width = '216mm';                                   
+      375 +            $page_height = '280mm';                                  
+      376 +        } else {                                                     
+      377 +            $page_width = '280mm';                                   
+      378 +            $page_height = '216mm';                                  
+      379          }                                                            
+      379 -        body {                                                       
+      380 -            margin: 0;                                               
+      381 -            padding: 0;                                              
+      382 -            width: 100%;                                             
+      383 -            height: 100%;                                            
+      384 -        }                                                            
+      385 -        .certificate-page {                                          
+      386 -            position: relative;                                      
+      387 -            width: 100%;                                             
+      388 -            height: 100%;                                            
+      389 -            margin: 0;                                               
+      390 -            padding: 0;                                              
+      391 -        }                                                            
+      392 -        <?php if ($background_image): ?>                             
+      393 -        .certificate-background {                                    
+      394 -            position: absolute;                                      
+      395 -            top: 0;                                                  
+      396 -            left: 0;                                                 
+      397 -            width: 100%;                                             
+      398 -            height: 100%;                                            
+      399 -            margin: 0;                                               
+      400 -            padding: 0;                                              
+      401 -        }                                                            
+      402 -        .certificate-background img {                                
+      403 -            width: 100%;                                             
+      404 -            height: 100%;                                            
+      405 -            display: block;                                          
+      406 -        }                                                            
+      407 -        <?php endif; ?>                                              
+      408 -        .certificate-content {                                       
+      409 -            position: relative;                                      
+      410 -            z-index: 10;                                             
+      411 -        }                                                            
+      412 -    </style>                                                         
+      413 -</head>                                                              
+      414 -<body>                                                               
+      415 -    <div class="certificate-page">                                   
+      416 -        <?php if ($background_image): ?>                             
+      417 -            <div class="certificate-background">                     
+      418 -                <img src="<?php echo esc_url($background_image       
+          -); ?>" alt="Certificate Background" />                               
+      419 -            </div>                                                   
+      420 -        <?php endif; ?>                                              
+      421 -        <?php if ($content): ?>                                      
+      422 -            <div class="certificate-content">                        
+      423 -                <?php echo $content; ?>                              
+      424 -            </div>                                                   
+      425 -        <?php endif; ?>                                              
+      426 -    </div>                                                           
+      427 -</body>                                                              
+      428 -</html>                                                              
+      429 -        <?php                                                        
+      380 +                                                                     
+      381 +        // For additional pages, use a simpler approach withou       
+          +t full HTML document                                                 
+      382 +        // This works better with mPDF's AddPage() method            
+      383 +        ob_start();                                                  
+      384 +        if ($background_image): ?>                                   
+      385 +<div style="position: absolute; top: 0; left: 0; right: 0; bot       
+          +tom: 0; margin: 0; padding: 0;">                                     
+      386 +    <img src="<?php echo esc_url($background_image); ?>" style       
+          +="width: <?php echo $page_width; ?>; height: <?php echo $page_       
+          +height; ?>; display: block; margin: 0; padding: 0;" />               
+      387 +</div>                                                               
+      388 +<?php endif;                                                         
+      389 +        if ($content): ?>                                            
+      390 +<div style="position: relative; z-index: 10;">                       
+      391 +    <?php echo $content; ?>                                          
+      392 +</div>                                                               
+      393 +<?php endif;                                                         
+      394          $html = ob_get_clean();                                      
+      395                                                                       
+      396          return apply_filters('custom_cert_additional_page_html       
+           ', $html, $page, $data);                                             
+                                                                                
+● He hecho dos cambios importantes:                                             
+                                                                                
+  1. Aumenté ligeramente las dimensiones (280mm x 216mm en lugar de 279.4mm x   
+  215.9mm) para que la imagen desborde un poco y cubra cualquier espacio        
+  2. Eliminé la estructura HTML completa ya que después de AddPage() mPDF maneja
+   mejor el contenido simple                                                    
+                                                                                
+  Prueba generar el certificado nuevamente.                                     
+                                                                                
+✻ Churned for 44s                                                               
+                                                                                
+❯ Perfecto ahora si se ve córrectamente, podrías documentar los ultimos         
+  cambios aplicados en el archivo de DOCUMENTACION_OFICIAL.md                   
+                                                                                
+● Read(docs\DOCUMENTACION_OFICIAL.md)                                           
+  ⎿  Read 159 lines                                                             
+                                                                                
+● Voy a actualizar la documentación con la nueva funcionalidad de páginas       
+  adicionales.                                                                  
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 4 lines, removed 1 line                                              
+       7                                                                        
+       8  *   **Gestión de Plantillas Visuales**: Creación de plantillas        
+          de certificados utilizando el editor clásico de WordPress, con        
+          soporte para imágenes de fondo destacadas.                            
+       9  *   **Generación Dinámica de PDF**: Utiliza la librería **mPDF*       
+          * para generar documentos PDF de alta calidad al vuelo.               
+      10 +*   **Certificados Multi-Página**: Soporte para agregar páginas       
+         + adicionales a los certificados, cada una con su propia imagen        
+         +de fondo.                                                             
+      11  *   **Integración Nativa con BuddyBoss**: Añade una pestaña "Mi       
+          s Certificados" en el perfil de cada miembro, manteniendo la es       
+          tética y funcionalidad de la red social.                              
+      11 -*   **Configuración Personalizable**: Control total sobre la or       
+         -ientación (Apaisado/Vertical), colores de texto, tamaño de fuen       
+         -te y fondos por plantilla.                                            
+      12 +*   **Configuración Personalizable**: Control total sobre la or       
+         +ientación (Apaisado/Vertical), colores de texto, tamaño de fuen       
+         +te, tipografía y fondos por plantilla.                                
+      13  *   **Sistema de Verificación**: Cada certificado emitido inclu       
+          ye un **código único de 10 caracteres** para garantizar su aute       
+          nticidad.                                                             
+      14 +*   **Verificación Pública**: Página pública con shortcode para       
+         + que terceros verifiquen la autenticidad de certificados.             
+      15  *   **Asignación Masiva**: Herramienta administrativa para asig       
+          nar certificados a usuarios individuales o múltiples usuarios s       
+          imultáneamente mediante búsqueda AJAX.                                
+      16 +*   **Edición de Variables Post-Asignación**: Posibilidad de ed       
+         +itar los valores de variables personalizadas en certificados ya       
+         + asignados.                                                           
+      17  *   **Gestión de Dependencias**: Sistema integrado de comprobac       
+          ión e instalación de librerías necesarias (mPDF).                     
+      18                                                                        
+      19  ---                                                                   
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 4 lines, removed 1 line                                              
+      51  Desde el menú **Certificados > Añadir Nueva**:                        
+      52  1.  **Título**: Nombre interno de la plantilla (ej. "Certificad       
+          o de Participación 2024").                                            
+      53  2.  **Contenido**: Diseño del cuerpo del certificado. Se pueden       
+           usar variables dinámicas.                                            
+      54 -3.  **Imagen Destacada**: Se usa como **fondo** del certificado       
+         - (se recomienda formato A4/Carta en alta resolución).                 
+      54 +3.  **Imagen Destacada**: Se usa como **fondo** de la primera p       
+         +ágina del certificado (se recomienda formato Carta/Letter en al       
+         +ta resolución).                                                       
+      55  4.  **Configuración del Certificado**:                                
+      56      *   *Color de Texto*: Hexadecimal.                                
+      57      *   *Tamaño de Fuente*: Base en píxeles.                          
+      58      *   *Orientación*: Horizontal (Landscape) o Vertical (Portr       
+          ait).                                                                 
+      59 +    *   *Tipografía*: Selección de fuentes Google Fonts (Montse       
+         +rrat, Open Sans, Roboto, Lato).                                       
+      60 +5.  **Variables Personalizadas** (opcional): Definir variables        
+         +adicionales específicas para esta plantilla que se completarán        
+         +al momento de asignar.                                                
+      61 +6.  **Páginas Adicionales** (opcional): Agregar páginas extra a       
+         +l certificado con sus propias imágenes de fondo.                      
+      62                                                                        
+      63  ### 2. Asignación de Certificados                                     
+      64  Desde **Certificados > Asignar Certificados**:                        
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 33 lines                                                             
+      117  *   **Hook de Generación**: `template_redirect`. Detecta el pa       
+           rámetro `?download_certificate=1`.                                   
+      118  *   **Seguridad**: Verifica Nonces y permisos (solo el dueño o       
+            un administrador pueden descargar).                                 
+      119  *   **Renderizado**: Genera HTML intermedio y lo convierte a P       
+           DF. Si no hay plantilla HTML personalizada en el tema, usa una       
+            estructura por defecto centrada en la imagen de fondo.              
+      120 +*   **Formato de Página**: Tamaño Carta (Letter) - 279.4mm x 2       
+          +15.9mm (landscape) o 215.9mm x 279.4mm (portrait).                   
+      121                                                                       
+      122 +### Páginas Adicionales                                              
+      123 +                                                                     
+      124 +El plugin permite agregar múltiples páginas a un certificado.        
+          +Cada página adicional puede tener su propia imagen de fondo.         
+      125 +                                                                     
+      126 +#### Configuración                                                   
+      127 +Desde el metabox **"Páginas Adicionales"** en la edición de pl       
+          +antilla:                                                             
+      128 +1.  Clic en **"Agregar Página"** para crear una nueva página.        
+      129 +2.  Seleccionar una imagen de fondo desde la **Biblioteca de M       
+          +edios** de WordPress.                                                
+      130 +3.  Opcionalmente, agregar contenido HTML/texto para la página       
+          +.                                                                    
+      131 +4.  Repetir para agregar más páginas según sea necesario.            
+      132 +5.  Las páginas se pueden eliminar individualmente con el botó       
+          +n "Eliminar".                                                        
+      133 +                                                                     
+      134 +#### Características Técnicas                                        
+      135 +*   **Almacenamiento**: Las páginas adicionales se guardan en        
+          +el meta `_cert_additional_pages` como JSON.                          
+      136 +*   **Estructura de datos**:                                         
+      137 +    ```json                                                          
+      138 +    [                                                                
+      139 +      {                                                              
+      140 +        "image_id": 123,                                             
+      141 +        "content": "<p>Contenido opcional</p>"                       
+      142 +      }                                                              
+      143 +    ]                                                                
+      144 +    ```                                                              
+      145 +*   **Variables**: El contenido de las páginas adicionales tam       
+          +bién soporta todas las variables de plantilla ({NOMBRE_USUARIO       
+          +}, {FECHA_EMISION}, variables personalizadas, etc.).                 
+      146 +*   **Renderizado**: Cada página adicional se genera con `AddP       
+          +age()` de mPDF, manteniendo la misma orientación que la página       
+          + principal.                                                          
+      147 +*   **Imagen de fondo**: Las imágenes se escalan automáticamen       
+          +te para cubrir el 100% del área de la página.                        
+      148 +                                                                     
+      149 +#### Recomendaciones                                                 
+      150 +*   Usar imágenes con las mismas dimensiones que la página pri       
+          +ncipal para mantener consistencia visual.                            
+      151 +*   Las imágenes deben tener resolución adecuada (mínimo 150 D       
+          +PI para impresión).                                                  
+      152 +*   Formato recomendado: PNG o JPG de alta calidad.                  
+      153 +                                                                     
+      154  ### Integración BuddyBoss                                            
+      155  *   Utiliza la API `bp_core_new_nav_item` para inyectar la nav       
+           egación.                                                             
+      156  *   Slug del componente: `certificados-innova`.                      
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 4 lines                                                              
+      35  │   ├── class-buddyboss-integration.php # Integración con perfi       
+          les de BuddyBoss                                                      
+      36  │   ├── class-certificate-assignment.php # Lógica de asignación       
+           y verificación                                                       
+      37  │   ├── class-certificate-post-type.php # Registro de CPTs (Pla       
+          ntillas y Asignaciones)                                               
+      38 +│   ├── class-certificate-verification.php # Sistema de verific       
+         +ación pública                                                         
+      39  │   ├── class-dependency-installer.php  # Gestión de Composer/m       
+          PDF                                                                   
+      40  │   ├── class-pdf-generator.php         # Motor de generación d       
+          e PDFs                                                                
+      41  │   └── functions.php                   # Funciones helpers glo       
+          bales                                                                 
+      42 +├── public/                 # Recursos públicos del frontend          
+      43 +│   ├── css/verification.css            # Estilos del formulari       
+         +o de verificación                                                     
+      44 +│   └── js/verification.js              # JavaScript para verif       
+         +icación AJAX                                                          
+      45  ├── public/                 # Vistas públicas (Templates de per       
+          fil frontend)                                                         
+      46  ├── vendor/                 # Librerías externas (Composer - mP       
+          DF)                                                                   
+      47  └── custom-certificates.php # Archivo principal (Bootstrap)           
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 2 lines, removed 2 lines                                             
+      41  │   └── functions.php                   # Funciones helpers glo       
+          bales                                                                 
+      42  ├── public/                 # Recursos públicos del frontend          
+      43  │   ├── css/verification.css            # Estilos del formulari       
+          o de verificación                                                     
+      44 -│   └── js/verification.js              # JavaScript para verif       
+         -icación AJAX                                                          
+      45 -├── public/                 # Vistas públicas (Templates de per       
+         -fil frontend)                                                         
+      44 +│   ├── js/verification.js              # JavaScript para verif       
+         +icación AJAX                                                          
+      45 +│   └── templates/                      # Plantillas de perfil        
+         +frontend                                                              
+      46  ├── vendor/                 # Librerías externas (Composer - mP       
+          DF)                                                                   
+      47  └── custom-certificates.php # Archivo principal (Bootstrap)           
+      48  ```                                                                   
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 11 lines                                                             
+      188  3. Publicar la página                                                
+      189  4. Compartir la URL de la página para que terceros puedan veri       
+           ficar certificados                                                   
+      190                                                                       
+      191 +#### Verificación Automática por URL                                 
+      192 +El sistema soporta verificación automática mediante parámetros       
+          + en la URL. Al acceder a la página de verificación con uno de        
+          +estos parámetros, el código se auto-completa y se verifica aut       
+          +omáticamente:                                                        
+      193 +                                                                     
+      194 +```                                                                  
+      195 +https://tusitio.com/verificar-certificado/?certificate_id=ABC1       
+          +23XYZ0                                                               
+      196 +https://tusitio.com/verificar-certificado/?code=ABC123XYZ0           
+      197 +https://tusitio.com/verificar-certificado/?codigo=ABC123XYZ0         
+      198 +```                                                                  
+      199 +                                                                     
+      200 +Esto permite incluir enlaces de verificación directamente en l       
+          +os certificados PDF o compartirlos por correo electrónico.           
+      201 +                                                                     
+      202  #### Resultado de la Verificación                                    
+      203  - **Certificado válido**: Muestra nombre del titular, nombre d       
+           el certificado, fecha de emisión y código                            
+      204  - **Certificado no encontrado**: Mensaje indicando que el códi       
+           go no corresponde a ningún certificado                               
+                                                                                
+● Update(docs\DOCUMENTACION_OFICIAL.md)                                         
+  ⎿  Added 10 lines, removed 3 lines                                            
+      67  ### 2. Asignación de Certificados                                     
+      68  Desde **Certificados > Asignar Certificados**:                        
+      69  1.  Seleccionar la plantilla deseada.                                 
+      70 -2.  Buscar usuarios (búsqueda predictiva por nombre o email).         
+      71 -3.  Confirmar la asignación.                                          
+      72 -   *   *Internamente se genera un registro `bb_cert_assigned` c       
+         -on un código único y fecha de emisión.*                               
+      70 +2.  Si la plantilla tiene **variables personalizadas**, aparece       
+         +rán campos para completar sus valores.                                
+      71 +3.  Buscar usuarios (búsqueda predictiva por nombre o email).         
+      72 +4.  Confirmar la asignación.                                          
+      73 +    *   *Internamente se genera un registro `bb_cert_assigned`        
+         +con un código único y fecha de emisión.*                              
+      74                                                                        
+      75 +#### Edición de Certificados Asignados                                
+      76 +En la sección **"Certificados Asignados"** (parte inferior de l       
+         +a página de asignación), es posible:                                  
+      77 +*   Ver todos los certificados asignados con sus detalles.            
+      78 +*   **Editar variables personalizadas**: Si un certificado tien       
+         +e variables personalizadas, aparece un botón "Editar" que permi       
+         +te modificar los valores sin necesidad de eliminar y reasignar        
+         +el certificado.                                                       
+      79 +*   Eliminar certificados asignados.                                  
+      80 +                                                                      
+      81  ### 3. Vista del Usuario                                              
+      82  1.  El usuario accede a su perfil en BuddyBoss.                       
+      83  2.  Navega a la pestaña **Mis Certificados**.                         
+                                                                                
+● La documentación ha sido actualizada. Veamos el resultado final.              
+                                                                                
+● Read(docs\DOCUMENTACION_OFICIAL.md)                                           
+  ⎿  Read 220 lines                                                             
+                                                                                
+● La documentación ha sido actualizada con todas las funcionalidades recientes. 
+  Estos son los cambios realizados:                                             
+                                                                                
+  Características Principales (líneas 8-17):                                    
+  - Agregado: Certificados Multi-Página                                         
+  - Agregado: Verificación Pública                                              
+  - Agregado: Edición de Variables Post-Asignación                              
+  - Actualizado: Configuración incluye tipografía                               
+                                                                                
+  Estructura del Proyecto (líneas 33-45):                                       
+  - Agregado: class-certificate-verification.php                                
+  - Agregado: Archivos públicos (css/verification.css, js/verification.js)      
+                                                                                
+  Flujo de Trabajo - Creación de Plantilla (líneas 54-65):                      
+  - Agregado: Tipografía Google Fonts                                           
+  - Agregado: Variables Personalizadas                                          
+  - Agregado: Páginas Adicionales                                               
+                                                                                
+  Flujo de Trabajo - Asignación (líneas 67-79):                                 
+  - Agregado: Sección de edición de certificados asignados                      
+                                                                                
+  Detalles Técnicos (líneas 126-163):                                           
+  - Nueva sección: Páginas Adicionales con configuración, características       
+  técnicas y recomendaciones                                                    
+  - Agregado: Formato de página (Letter)                                        
+                                                                                
+  Verificación Pública (líneas 198-207):                                        
+  - Nueva sección: Verificación Automática por URL con ejemplos de parámetros   
+  soportados                                                                    
+                                                                                
+✻ Baked for 1m 40s                                                              
+

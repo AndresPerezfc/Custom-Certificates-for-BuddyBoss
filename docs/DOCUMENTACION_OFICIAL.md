@@ -7,10 +7,13 @@
 
 *   **Gestión de Plantillas Visuales**: Creación de plantillas de certificados utilizando el editor clásico de WordPress, con soporte para imágenes de fondo destacadas.
 *   **Generación Dinámica de PDF**: Utiliza la librería **mPDF** para generar documentos PDF de alta calidad al vuelo.
+*   **Certificados Multi-Página**: Soporte para agregar páginas adicionales a los certificados, cada una con su propia imagen de fondo.
 *   **Integración Nativa con BuddyBoss**: Añade una pestaña "Mis Certificados" en el perfil de cada miembro, manteniendo la estética y funcionalidad de la red social.
-*   **Configuración Personalizable**: Control total sobre la orientación (Apaisado/Vertical), colores de texto, tamaño de fuente y fondos por plantilla.
+*   **Configuración Personalizable**: Control total sobre la orientación (Apaisado/Vertical), colores de texto, tamaño de fuente, tipografía y fondos por plantilla.
 *   **Sistema de Verificación**: Cada certificado emitido incluye un **código único de 10 caracteres** para garantizar su autenticidad.
+*   **Verificación Pública**: Página pública con shortcode para que terceros verifiquen la autenticidad de certificados.
 *   **Asignación Masiva**: Herramienta administrativa para asignar certificados a usuarios individuales o múltiples usuarios simultáneamente mediante búsqueda AJAX.
+*   **Edición de Variables Post-Asignación**: Posibilidad de editar los valores de variables personalizadas en certificados ya asignados.
 *   **Gestión de Dependencias**: Sistema integrado de comprobación e instalación de librerías necesarias (mPDF).
 
 ---
@@ -32,10 +35,14 @@ custom-certificates/
 │   ├── class-buddyboss-integration.php # Integración con perfiles de BuddyBoss
 │   ├── class-certificate-assignment.php # Lógica de asignación y verificación
 │   ├── class-certificate-post-type.php # Registro de CPTs (Plantillas y Asignaciones)
+│   ├── class-certificate-verification.php # Sistema de verificación pública
 │   ├── class-dependency-installer.php  # Gestión de Composer/mPDF
 │   ├── class-pdf-generator.php         # Motor de generación de PDFs
 │   └── functions.php                   # Funciones helpers globales
-├── public/                 # Vistas públicas (Templates de perfil frontend)
+├── public/                 # Recursos públicos del frontend
+│   ├── css/verification.css            # Estilos del formulario de verificación
+│   ├── js/verification.js              # JavaScript para verificación AJAX
+│   └── templates/                      # Plantillas de perfil frontend
 ├── vendor/                 # Librerías externas (Composer - mPDF)
 └── custom-certificates.php # Archivo principal (Bootstrap)
 ```
@@ -48,18 +55,28 @@ custom-certificates/
 Desde el menú **Certificados > Añadir Nueva**:
 1.  **Título**: Nombre interno de la plantilla (ej. "Certificado de Participación 2024").
 2.  **Contenido**: Diseño del cuerpo del certificado. Se pueden usar variables dinámicas.
-3.  **Imagen Destacada**: Se usa como **fondo** del certificado (se recomienda formato A4/Carta en alta resolución).
+3.  **Imagen Destacada**: Se usa como **fondo** de la primera página del certificado (se recomienda formato Carta/Letter en alta resolución).
 4.  **Configuración del Certificado**:
     *   *Color de Texto*: Hexadecimal.
     *   *Tamaño de Fuente*: Base en píxeles.
     *   *Orientación*: Horizontal (Landscape) o Vertical (Portrait).
+    *   *Tipografía*: Selección de fuentes Google Fonts (Montserrat, Open Sans, Roboto, Lato).
+5.  **Variables Personalizadas** (opcional): Definir variables adicionales específicas para esta plantilla que se completarán al momento de asignar.
+6.  **Páginas Adicionales** (opcional): Agregar páginas extra al certificado con sus propias imágenes de fondo.
 
 ### 2. Asignación de Certificados
 Desde **Certificados > Asignar Certificados**:
 1.  Seleccionar la plantilla deseada.
-2.  Buscar usuarios (búsqueda predictiva por nombre o email).
-3.  Confirmar la asignación.
-   *   *Internamente se genera un registro `bb_cert_assigned` con un código único y fecha de emisión.*
+2.  Si la plantilla tiene **variables personalizadas**, aparecerán campos para completar sus valores.
+3.  Buscar usuarios (búsqueda predictiva por nombre o email).
+4.  Confirmar la asignación.
+    *   *Internamente se genera un registro `bb_cert_assigned` con un código único y fecha de emisión.*
+
+#### Edición de Certificados Asignados
+En la sección **"Certificados Asignados"** (parte inferior de la página de asignación), es posible:
+*   Ver todos los certificados asignados con sus detalles.
+*   **Editar variables personalizadas**: Si un certificado tiene variables personalizadas, aparece un botón "Editar" que permite modificar los valores sin necesidad de eliminar y reasignar el certificado.
+*   Eliminar certificados asignados.
 
 ### 3. Vista del Usuario
 1.  El usuario accede a su perfil en BuddyBoss.
@@ -111,6 +128,39 @@ Además de las variables automáticas, se pueden definir variables personalizada
 *   **Hook de Generación**: `template_redirect`. Detecta el parámetro `?download_certificate=1`.
 *   **Seguridad**: Verifica Nonces y permisos (solo el dueño o un administrador pueden descargar).
 *   **Renderizado**: Genera HTML intermedio y lo convierte a PDF. Si no hay plantilla HTML personalizada en el tema, usa una estructura por defecto centrada en la imagen de fondo.
+*   **Formato de Página**: Tamaño Carta (Letter) - 279.4mm x 215.9mm (landscape) o 215.9mm x 279.4mm (portrait).
+
+### Páginas Adicionales
+
+El plugin permite agregar múltiples páginas a un certificado. Cada página adicional puede tener su propia imagen de fondo.
+
+#### Configuración
+Desde el metabox **"Páginas Adicionales"** en la edición de plantilla:
+1.  Clic en **"Agregar Página"** para crear una nueva página.
+2.  Seleccionar una imagen de fondo desde la **Biblioteca de Medios** de WordPress.
+3.  Opcionalmente, agregar contenido HTML/texto para la página.
+4.  Repetir para agregar más páginas según sea necesario.
+5.  Las páginas se pueden eliminar individualmente con el botón "Eliminar".
+
+#### Características Técnicas
+*   **Almacenamiento**: Las páginas adicionales se guardan en el meta `_cert_additional_pages` como JSON.
+*   **Estructura de datos**:
+    ```json
+    [
+      {
+        "image_id": 123,
+        "content": "<p>Contenido opcional</p>"
+      }
+    ]
+    ```
+*   **Variables**: El contenido de las páginas adicionales también soporta todas las variables de plantilla ({NOMBRE_USUARIO}, {FECHA_EMISION}, variables personalizadas, etc.).
+*   **Renderizado**: Cada página adicional se genera con `AddPage()` de mPDF, manteniendo la misma orientación que la página principal.
+*   **Imagen de fondo**: Las imágenes se escalan automáticamente para cubrir el 100% del área de la página.
+
+#### Recomendaciones
+*   Usar imágenes con las mismas dimensiones que la página principal para mantener consistencia visual.
+*   Las imágenes deben tener resolución adecuada (mínimo 150 DPI para impresión).
+*   Formato recomendado: PNG o JPG de alta calidad.
 
 ### Integración BuddyBoss
 *   Utiliza la API `bp_core_new_nav_item` para inyectar la navegación.
@@ -144,6 +194,17 @@ El plugin incluye un sistema de verificación pública que permite a cualquier p
 2. Agregar el shortcode `[verificar_certificado]` en el contenido
 3. Publicar la página
 4. Compartir la URL de la página para que terceros puedan verificar certificados
+
+#### Verificación Automática por URL
+El sistema soporta verificación automática mediante parámetros en la URL. Al acceder a la página de verificación con uno de estos parámetros, el código se auto-completa y se verifica automáticamente:
+
+```
+https://tusitio.com/verificar-certificado/?certificate_id=ABC123XYZ0
+https://tusitio.com/verificar-certificado/?code=ABC123XYZ0
+https://tusitio.com/verificar-certificado/?codigo=ABC123XYZ0
+```
+
+Esto permite incluir enlaces de verificación directamente en los certificados PDF o compartirlos por correo electrónico.
 
 #### Resultado de la Verificación
 - **Certificado válido**: Muestra nombre del titular, nombre del certificado, fecha de emisión y código
