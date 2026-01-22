@@ -15,6 +15,16 @@
     padding: 40px;
 }
 
+.cert-verification-logo {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.cert-verification-logo img {
+    max-width: 280px;
+    height: auto;
+}
+
 .cert-verification-title {
     font-size: 28px;
     font-weight: 700;
