@@ -80,10 +80,12 @@ class Custom_Cert_BuddyBoss
 
     /**
      * Certificates title
+     * Returns empty - title is rendered inside content for better filter integration
      */
     public function certificates_title()
     {
-        echo __('Certificados Innova', 'custom-certificates');
+        // Title is now rendered inside certificates_content() for better UI integration
+        return;
     }
 
     /**
@@ -92,10 +94,19 @@ class Custom_Cert_BuddyBoss
     public function certificates_content()
     {
         $user_id = bp_displayed_user_id();
-
-        // Get user certificates
         $assignment = Custom_Cert_Assignment::get_instance();
-        $certificates = $assignment->get_user_certificates($user_id);
+
+        // Get filter parameters from URL
+        $filters = array(
+            'category' => isset($_GET['cert_category']) ? intval($_GET['cert_category']) : 0,
+            'order' => isset($_GET['cert_order']) && $_GET['cert_order'] === 'ASC' ? 'ASC' : 'DESC'
+        );
+
+        // Get user certificates with filters
+        $certificates = $assignment->get_user_certificates($user_id, $filters);
+
+        // Get available categories for this user
+        $categories = $assignment->get_user_certificate_categories($user_id);
 
         // Load template
         $template_file = $this->locate_template('profile-certificates.php');
@@ -103,7 +114,7 @@ class Custom_Cert_BuddyBoss
         if ($template_file) {
             include $template_file;
         } else {
-            $this->default_certificates_template($certificates, $user_id);
+            $this->default_certificates_template($certificates, $user_id, $categories, $filters);
         }
     }
 
@@ -112,14 +123,41 @@ class Custom_Cert_BuddyBoss
      *
      * @param array $certificates Array of certificate posts
      * @param int $user_id User ID
+     * @param array $categories Available categories
+     * @param array $filters Current filters
      */
-    private function default_certificates_template($certificates, $user_id)
+    private function default_certificates_template($certificates, $user_id, $categories = array(), $filters = array())
     {
         $is_own_profile = (get_current_user_id() === $user_id);
         $displayed_user = get_userdata($user_id);
+        $current_url = bp_displayed_user_domain() . 'certificados-innova/';
 
         ?>
         <div class="custom-certificates-wrapper">
+            <div class="certificates-header">
+                <h2 class="certificates-title"><?php _e('Certificados Innova', 'custom-certificates'); ?></h2>
+
+                <?php if (!empty($categories) || !empty($certificates)): ?>
+                    <form method="get" action="<?php echo esc_url($current_url); ?>" class="certificates-filter-form">
+                        <?php if (!empty($categories)): ?>
+                            <select name="cert_category" id="cert_category" class="cert-filter-select" onchange="this.form.submit()" title="<?php esc_attr_e('Filtrar por categoría', 'custom-certificates'); ?>">
+                                <option value=""><?php _e('Todas las categorías', 'custom-certificates'); ?></option>
+                                <?php foreach ($categories as $category): ?>
+                                    <option value="<?php echo esc_attr($category->term_id); ?>" <?php selected($filters['category'], $category->term_id); ?>>
+                                        <?php echo esc_html($category->name); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php endif; ?>
+
+                        <select name="cert_order" id="cert_order" class="cert-filter-select" onchange="this.form.submit()" title="<?php esc_attr_e('Ordenar por fecha', 'custom-certificates'); ?>">
+                            <option value="DESC" <?php selected($filters['order'], 'DESC'); ?>><?php _e('Más recientes', 'custom-certificates'); ?></option>
+                            <option value="ASC" <?php selected($filters['order'], 'ASC'); ?>><?php _e('Más antiguos', 'custom-certificates'); ?></option>
+                        </select>
+                    </form>
+                <?php endif; ?>
+            </div>
+
             <?php if (!empty($certificates)): ?>
                 <div class="certificates-grid">
                     <?php foreach ($certificates as $certificate): ?>
@@ -178,7 +216,10 @@ class Custom_Cert_BuddyBoss
                     </div>
                     <p>
                         <?php
-                        if ($is_own_profile) {
+                        $has_active_filter = !empty($filters['category']);
+                        if ($has_active_filter) {
+                            _e('No hay certificados en esta categoría.', 'custom-certificates');
+                        } elseif ($is_own_profile) {
                             _e('Aún no tienes certificados.', 'custom-certificates');
                         } else {
                             printf(
@@ -197,11 +238,76 @@ class Custom_Cert_BuddyBoss
                 padding: 20px;
             }
 
+            .certificates-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 24px;
+                flex-wrap: wrap;
+            }
+
+            .certificates-title {
+                margin: 0;
+                font-size: 22px;
+                font-weight: 600;
+                color: #1e1e1e;
+            }
+
+            .certificates-filter-form {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .cert-filter-select {
+                padding: 6px 28px 6px 10px;
+                font-size: 13px;
+                border: 1px solid #dcdcdc;
+                border-radius: 6px;
+                background-color: #fff;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                background-position: right 6px center;
+                background-repeat: no-repeat;
+                background-size: 14px 10px;
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                cursor: pointer;
+                color: #495057;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .cert-filter-select:hover {
+                border-color: #667eea;
+            }
+
+            .cert-filter-select:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
+            }
+
+            @media (max-width: 540px) {
+                .certificates-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .certificates-filter-form {
+                    width: 100%;
+                }
+
+                .cert-filter-select {
+                    flex: 1;
+                    min-width: 0;
+                }
+            }
+
             .certificates-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
                 gap: 20px;
-                margin-top: 20px;
             }
 
             .certificate-item {

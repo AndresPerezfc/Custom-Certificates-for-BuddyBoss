@@ -82,7 +82,20 @@ En la sección **"Certificados Asignados"** (parte inferior de la página de asi
 1.  El usuario accede a su perfil en BuddyBoss.
 2.  Navega a la pestaña **Mis Certificados**.
 3.  Visualiza una galería de sus certificados ganados.
-4.  Clic en **Ver Certificado** para generar y descargar el PDF en tiempo real.
+4.  **Filtrar y ordenar** (opcional):
+    *   *Filtrar por Categoría*: Dropdown para mostrar solo certificados de una categoría específica.
+    *   *Ordenar por Fecha*: Mostrar los más recientes o más antiguos primero.
+5.  Clic en **Ver Certificado** para generar y descargar el PDF en tiempo real.
+
+#### Filtros de Certificados
+Cuando un usuario tiene múltiples certificados, puede utilizar los controles de filtrado:
+
+| Control | Opciones | Descripción |
+|---------|----------|-------------|
+| Categoría | Todas / [Categorías disponibles] | Filtra certificados por la categoría de la plantilla |
+| Ordenar | Más recientes / Más antiguos | Ordena por fecha de asignación |
+
+> **Nota:** El filtro de categoría solo aparece si las plantillas de certificados tienen categorías asignadas y el usuario tiene certificados en más de una categoría.
 
 ---
 

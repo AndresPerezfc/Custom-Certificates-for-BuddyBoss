@@ -151,16 +151,50 @@ class Custom_Cert_Assignment {
      * Get user certificates
      *
      * @param int $user_id User ID
+     * @param array $filters Optional filters (category, order)
      * @return array Array of certificate posts
      */
-    public function get_user_certificates($user_id) {
+    public function get_user_certificates($user_id, $filters = array()) {
         $args = array(
             'post_type' => 'bb_cert_assigned',
             'author' => $user_id,
             'posts_per_page' => -1,
-            'orderby' => 'date',
-            'order' => 'DESC'
+            'orderby' => 'meta_value',
+            'meta_key' => '_cert_issue_date',
+            'order' => isset($filters['order']) && $filters['order'] === 'ASC' ? 'ASC' : 'DESC'
         );
+
+        // Filter by category
+        if (!empty($filters['category'])) {
+            $category_id = intval($filters['category']);
+
+            // Get all template IDs that belong to this category
+            $template_ids = get_posts(array(
+                'post_type' => 'bb_cert_template',
+                'posts_per_page' => -1,
+                'fields' => 'ids',
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'cert_category',
+                        'field' => 'term_id',
+                        'terms' => $category_id
+                    )
+                )
+            ));
+
+            if (!empty($template_ids)) {
+                $args['meta_query'] = array(
+                    array(
+                        'key' => '_cert_template_id',
+                        'value' => $template_ids,
+                        'compare' => 'IN'
+                    )
+                );
+            } else {
+                // No templates in this category, return empty
+                return array();
+            }
+        }
 
         return get_posts($args);
     }
@@ -206,6 +240,49 @@ class Custom_Cert_Assignment {
 
         $certificates = get_posts($args);
         return count($certificates);
+    }
+
+    /**
+     * Get categories that have certificates assigned to a user
+     *
+     * @param int $user_id User ID
+     * @return array Array of term objects
+     */
+    public function get_user_certificate_categories($user_id) {
+        // Get all user certificates
+        $certificates = $this->get_user_certificates($user_id);
+
+        if (empty($certificates)) {
+            return array();
+        }
+
+        // Collect unique template IDs
+        $template_ids = array();
+        foreach ($certificates as $cert) {
+            $template_id = get_post_meta($cert->ID, '_cert_template_id', true);
+            if ($template_id) {
+                $template_ids[] = $template_id;
+            }
+        }
+
+        $template_ids = array_unique($template_ids);
+
+        if (empty($template_ids)) {
+            return array();
+        }
+
+        // Get categories from these templates
+        $categories = array();
+        foreach ($template_ids as $template_id) {
+            $terms = wp_get_post_terms($template_id, 'cert_category');
+            if (!is_wp_error($terms) && !empty($terms)) {
+                foreach ($terms as $term) {
+                    $categories[$term->term_id] = $term;
+                }
+            }
+        }
+
+        return array_values($categories);
     }
 
     /**
