@@ -88,7 +88,7 @@ class Custom_Cert_Verification {
                 <div class="cert-verification-logo">
                     <img src="<?php echo esc_url(CUSTOM_CERT_PLUGIN_URL . 'assets/image/logos-B10-Innova.png'); ?>" alt="<?php esc_attr_e('Logo', 'custom-certificates'); ?>">
                 </div>
-
+                                
                 <?php if (!empty($atts['title'])): ?>
                     <h3 class="cert-verification-title"><?php echo esc_html($atts['title']); ?></h3>
                 <?php endif; ?>
