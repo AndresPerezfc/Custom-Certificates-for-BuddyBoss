@@ -90,23 +90,6 @@ $notification_message = get_option('custom_cert_notification_message', __('Hola 
                 </form>
             </div>
 
-            <div class="card" style="margin-top: 20px;">
-                <h2><?php _e('Importación CSV', 'custom-certificates'); ?></h2>
-
-                <p><?php _e('Próximamente: Podrás importar múltiples asignaciones de certificados usando un archivo CSV.', 'custom-certificates'); ?></p>
-
-                <h4><?php _e('Formato esperado del CSV:', 'custom-certificates'); ?></h4>
-                <pre style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd;">email,tipo_certificado,fecha_emision,notas
-juan.perez@example.com,Competencias Digitales,2024-01-15,Nivel Avanzado
-maria.garcia@example.com,Competencias Digitales,2024-01-15,</pre>
-
-                <p>
-                    <button class="button" disabled>
-                        <span class="dashicons dashicons-upload"></span>
-                        <?php _e('Importar CSV (Próximamente)', 'custom-certificates'); ?>
-                    </button>
-                </p>
-            </div>
         </div>
 
         <div class="settings-sidebar">
