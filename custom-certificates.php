@@ -93,6 +93,7 @@ class Custom_Certificates
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-buddyboss-integration.php';
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-admin-interface.php';
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-certificate-verification.php';
+        require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/class-csv-import.php';
 
         // Helper functions
         require_once CUSTOM_CERT_PLUGIN_DIR . 'includes/functions.php';
@@ -113,6 +114,7 @@ class Custom_Certificates
         // Admin interface (only in admin)
         if (is_admin()) {
             Custom_Cert_Admin::get_instance();
+            Custom_Cert_CSV_Import::get_instance();
         }
 
         do_action('custom_cert_init');

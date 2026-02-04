@@ -125,7 +125,7 @@ if (!defined('ABSPATH')) {
 
                     <h4><?php _e('Importación Masiva', 'custom-certificates'); ?></h4>
                     <p><?php _e('Para asignar certificados a muchos usuarios, considera usar un archivo CSV:', 'custom-certificates'); ?></p>
-                    <a href="<?php echo admin_url('edit.php?post_type=bb_cert_template&page=cert-settings'); ?>" class="button">
+                    <a href="<?php echo admin_url('edit.php?post_type=bb_cert_template&page=csv-import'); ?>" class="button">
                         <?php _e('Ir a Importación CSV', 'custom-certificates'); ?>
                     </a>
                 </div>

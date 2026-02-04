@@ -13,6 +13,7 @@
 *   **Sistema de Verificación**: Cada certificado emitido incluye un **código único de 10 caracteres** para garantizar su autenticidad.
 *   **Verificación Pública**: Página pública con shortcode para que terceros verifiquen la autenticidad de certificados.
 *   **Asignación Masiva**: Herramienta administrativa para asignar certificados a usuarios individuales o múltiples usuarios simultáneamente mediante búsqueda AJAX.
+*   **Importación CSV**: Sistema de importación masiva que permite asignar certificados a cientos de usuarios mediante archivo CSV.
 *   **Edición de Variables Post-Asignación**: Posibilidad de editar los valores de variables personalizadas en certificados ya asignados.
 *   **Gestión de Dependencias**: Sistema integrado de comprobación e instalación de librerías necesarias (mPDF).
 
@@ -36,6 +37,7 @@ custom-certificates/
 │   ├── class-certificate-assignment.php # Lógica de asignación y verificación
 │   ├── class-certificate-post-type.php # Registro de CPTs (Plantillas y Asignaciones)
 │   ├── class-certificate-verification.php # Sistema de verificación pública
+│   ├── class-csv-import.php            # Sistema de importación CSV masiva
 │   ├── class-dependency-installer.php  # Gestión de Composer/mPDF
 │   ├── class-pdf-generator.php         # Motor de generación de PDFs
 │   └── functions.php                   # Funciones helpers globales
@@ -77,6 +79,54 @@ En la sección **"Certificados Asignados"** (parte inferior de la página de asi
 *   Ver todos los certificados asignados con sus detalles.
 *   **Editar variables personalizadas**: Si un certificado tiene variables personalizadas, aparece un botón "Editar" que permite modificar los valores sin necesidad de eliminar y reasignar el certificado.
 *   Eliminar certificados asignados.
+
+#### Importación CSV Masiva
+Para asignar certificados a muchos usuarios de forma eficiente, desde **Certificados > Importar CSV**:
+
+1.  **Seleccionar plantilla**: Elegir la plantilla de certificado a asignar.
+2.  **Descargar plantilla de ejemplo**: Obtener un CSV con el formato correcto para la plantilla seleccionada.
+3.  **Subir archivo CSV**: Arrastrar o seleccionar el archivo CSV.
+4.  **Vista previa y validación**: El sistema muestra cuántos usuarios son válidos y cuántos tienen errores.
+5.  **Procesar importación**: La importación se realiza por lotes mostrando el progreso en tiempo real.
+6.  **Resultados**: Resumen de certificados asignados, omitidos (duplicados) y errores.
+
+##### Formato del CSV
+
+| Columna | Obligatoria | Descripción |
+|---------|-------------|-------------|
+| `email` | Sí | Email del usuario en WordPress |
+| `user_id` | No | Alternativa al email - ID numérico del usuario |
+| `{VARIABLE}` | Condicional | Columnas adicionales para variables personalizadas de la plantilla |
+
+**Ejemplo de CSV básico:**
+```csv
+email
+juan@ejemplo.com
+maria@ejemplo.com
+carlos@ejemplo.com
+```
+
+**Ejemplo de CSV con variables personalizadas:**
+```csv
+email,CATEGORIA,NIVEL
+juan@ejemplo.com,Desarrollo Web,Avanzado
+maria@ejemplo.com,Marketing Digital,Intermedio
+carlos@ejemplo.com,Diseño Gráfico,Básico
+```
+
+> **Importante:** Los campos de perfil de BuddyBoss (xprofile) NO se incluyen en el CSV. Estos se obtienen automáticamente del perfil de cada usuario al generar el PDF.
+
+##### Requisitos del archivo
+*   **Codificación**: UTF-8
+*   **Separador**: Coma (,) o punto y coma (;) - se detecta automáticamente
+*   **Tamaño máximo**: 5MB
+*   **Primera fila**: Debe contener los encabezados de columna
+
+##### Manejo de errores
+*   **Usuario no encontrado**: Se reporta el error y se continúa con los demás
+*   **Certificado duplicado**: Se omite automáticamente (no se puede asignar el mismo certificado dos veces al mismo usuario)
+*   **Variable faltante**: Se reporta el error indicando qué variable está vacía
+*   **Al finalizar**: Se puede descargar un reporte CSV con todos los errores
 
 ### 3. Vista del Usuario
 1.  El usuario accede a su perfil en BuddyBoss.

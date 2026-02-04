@@ -67,6 +67,16 @@ class Custom_Cert_Admin {
             'cert-settings',
             array($this, 'settings_page')
         );
+
+        // CSV Import submenu
+        add_submenu_page(
+            'edit.php?post_type=bb_cert_template',
+            __('Importar CSV', 'custom-certificates'),
+            __('Importar CSV', 'custom-certificates'),
+            'manage_options',
+            'csv-import',
+            array($this, 'csv_import_page')
+        );
     }
 
     /**
@@ -1025,6 +1035,20 @@ class Custom_Cert_Admin {
     }
 
     /**
+     * CSV Import page
+     */
+    public function csv_import_page() {
+        // Get templates for dropdown
+        $templates = get_posts(array(
+            'post_type' => 'bb_cert_template',
+            'posts_per_page' => -1,
+            'post_status' => 'publish'
+        ));
+
+        include CUSTOM_CERT_PLUGIN_DIR . 'admin/views/csv-import.php';
+    }
+
+    /**
      * Template columns
      */
     public function template_columns($columns) {
@@ -1134,6 +1158,13 @@ class Custom_Cert_Admin {
             $is_our_page = true;
         }
 
+        // Check for CSV import page
+        $is_csv_page = false;
+        if (strpos($hook, 'csv-import') !== false) {
+            $is_our_page = true;
+            $is_csv_page = true;
+        }
+
         // Check for certificate template or assigned post types
         if (in_array($hook, array('post.php', 'post-new.php', 'edit.php'))) {
             if (isset($post_type) && in_array($post_type, array('bb_cert_template', 'bb_cert_assigned'))) {
@@ -1177,6 +1208,34 @@ class Custom_Cert_Admin {
                 'error' => __('Error al asignar certificado', 'custom-certificates')
             )
         ));
+
+        // Enqueue CSV import scripts if on CSV page
+        if ($is_csv_page) {
+            wp_enqueue_script(
+                'custom-cert-csv-import',
+                CUSTOM_CERT_PLUGIN_URL . 'admin/js/csv-import.js',
+                array('jquery'),
+                CUSTOM_CERT_VERSION,
+                true
+            );
+
+            wp_localize_script('custom-cert-csv-import', 'customCertCSV', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('csv_import'),
+                'batch_size' => Custom_Cert_CSV_Import::get_instance()->get_batch_size(),
+                'strings' => array(
+                    'uploading' => __('Subiendo archivo...', 'custom-certificates'),
+                    'validating' => __('Validando datos...', 'custom-certificates'),
+                    'processing' => __('Procesando...', 'custom-certificates'),
+                    'completed' => __('Importación completada', 'custom-certificates'),
+                    'error' => __('Error durante la importación', 'custom-certificates'),
+                    'confirm_cancel' => __('¿Estás seguro de cancelar la importación?', 'custom-certificates'),
+                    'select_template' => __('Por favor, selecciona una plantilla primero.', 'custom-certificates'),
+                    'select_file' => __('Por favor, selecciona un archivo CSV.', 'custom-certificates'),
+                    'no_valid_rows' => __('No hay filas válidas para importar.', 'custom-certificates')
+                )
+            ));
+        }
     }
 
     /**
